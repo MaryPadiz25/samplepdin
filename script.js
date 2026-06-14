@@ -2235,19 +2235,38 @@ function bindPageEvents() {
             photoDataUrl: null,
           };
 
-          // Read the photo as a base64 data URL so it can be displayed on the profile
+          // Read the photo, resize/compress it, then save as base64 data URL in localStorage.
+          // GitHub Pages is static — no server storage — so we embed the image directly.
+          // We resize to max 400x400px and compress to JPEG 0.82 quality to stay well
+          // under localStorage's ~5 MB limit (raw 5 MB file -> ~270 KB after resize).
           const saveApp = (photoDataUrl) => {
             if (photoDataUrl) application.photoDataUrl = photoDataUrl;
             try {
               const existing = JSON.parse(localStorage.getItem('pdin_applications') || '[]');
               existing.push(application);
               localStorage.setItem('pdin_applications', JSON.stringify(existing));
-            } catch(e) { /* storage unavailable — no problem, email still went */ }
+            } catch(e) { /* storage full or unavailable - profile will show initials instead */ }
           };
 
           if (photoFile) {
             const reader = new FileReader();
-            reader.onload = (e) => saveApp(e.target.result);
+            reader.onload = (ev) => {
+              const img = new Image();
+              img.onload = () => {
+                const MAX = 400;
+                let w = img.width, h = img.height;
+                if (w > MAX || h > MAX) {
+                  if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                  else       { w = Math.round(w * MAX / h); h = MAX; }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                saveApp(canvas.toDataURL('image/jpeg', 0.82));
+              };
+              img.onerror = () => saveApp(null);
+              img.src = ev.target.result;
+            };
             reader.onerror = () => saveApp(null);
             reader.readAsDataURL(photoFile);
           } else {
