@@ -371,9 +371,11 @@ async function geocodeSuburb(query) {
   return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), display: data[0].display_name.split(',')[0] };
 }
 
-function sortInstructorsByDistance(lat, lng) {
-  return INSTRUCTORS
+function sortInstructorsByDistance(lat, lng, instructorList) {
+  const list = instructorList || getAllInstructors();
+  return list
     .map(inst => {
+      if (!inst.baseLat || !inst.baseLng) return { inst, km: 9999, inRange: false };
       const km = haversineKm(lat, lng, inst.baseLat, inst.baseLng);
       const effectiveRadius = inst.travelBonus ? inst.serviceRadius + 8 : inst.serviceRadius;
       return { inst, km, inRange: km <= effectiveRadius };
@@ -417,6 +419,20 @@ function instructorCardHTML(inst, distKm) {
 }
 
 /* =============================================
+   LIVE PROFILE HELPERS
+   Approved applications are stored in pdin_live_profiles
+   and merged with hardcoded INSTRUCTORS at runtime.
+   ============================================= */
+function getLiveProfiles() {
+  try { return JSON.parse(localStorage.getItem('pdin_live_profiles') || '[]'); } catch(e) { return []; }
+}
+function getAllInstructors() {
+  const live = getLiveProfiles();
+  const liveOnly = live.filter(lp => !INSTRUCTORS.find(i => i.id === lp.id));
+  return [...INSTRUCTORS, ...liveOnly];
+}
+
+/* =============================================
    PAGES
    ============================================= */
 function renderHome() {
@@ -454,7 +470,7 @@ function renderHome() {
       <div class="container">
         <h2 class="section-title reveal">Featured Instructors</h2>
         <div class="instructor-grid">
-          ${INSTRUCTORS.map(i => instructorCardHTML(i)).join('')}
+          ${getAllInstructors().map(i => instructorCardHTML(i)).join('')}
         </div>
       </div>
     </section>
@@ -477,9 +493,10 @@ function renderHome() {
 }
 
 function renderFind(searchLat, searchLng, searchLabel) {
+  const allInst = getAllInstructors();
   const sorted = (searchLat !== undefined)
-    ? sortInstructorsByDistance(searchLat, searchLng)
-    : INSTRUCTORS.map(i => ({ inst: i, km: undefined }));
+    ? sortInstructorsByDistance(searchLat, searchLng, allInst)
+    : allInst.map(i => ({ inst: i, km: undefined }));
 
   const cardsHTML = sorted.map(({ inst, km }) => instructorCardHTML(inst, km)).join('');
   const searchInfo = searchLabel
@@ -517,7 +534,8 @@ function renderFind(searchLat, searchLng, searchLabel) {
 }
 
 function renderProfile(id) {
-  const inst = INSTRUCTORS.find(i => i.id === id) || INSTRUCTORS[0];
+  const allInst = getAllInstructors();
+  const inst = allInst.find(i => i.id === id) || allInst[0];
   const effectiveRadius = inst.travelBonus ? inst.serviceRadius + 8 : inst.serviceRadius;
 
   const avatarEl = inst.photo
@@ -1306,13 +1324,18 @@ ${expertiseIdStr}
 
         ${app.status === 'pending' ? `
         <div class="admin-app-actions">
-          <button class="btn btn-navy admin-approve-btn" data-appid="${app.id}">✓ Approve &amp; Copy Code</button>
+          <button class="btn btn-navy admin-approve-btn" data-appid="${app.id}">✓ Approve &amp; Publish Live</button>
           <button class="btn btn-outline admin-reject-btn" data-appid="${app.id}">✕ Reject</button>
           <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Delete</button>
+        </div>` : app.status === 'approved' ? `
+        <div class="admin-app-actions">
+          <button class="btn btn-outline admin-view-live-btn" data-slug="${app.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')}">👁 View Live Profile</button>
+          <button class="btn btn-outline admin-reject-btn" data-appid="${app.id}" style="color:#c0392b;border-color:#c0392b">✕ Remove from Site</button>
+          <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Delete Record</button>
         </div>` : `
         <div class="admin-app-actions">
+          <button class="btn btn-outline admin-restore-btn" data-appid="${app.id}">↩ Restore to Pending</button>
           <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Delete Record</button>
-          ${app.status === 'rejected' ? `<button class="btn btn-outline admin-restore-btn" data-appid="${app.id}">↩ Restore to Pending</button>` : ''}
         </div>`}
       </div>`;
   }
@@ -1343,8 +1366,8 @@ ${expertiseIdStr}
       </div>
 
       <div class="admin-footer-note">
-        <p>💡 <strong>How it works:</strong> When you click <em>Approve &amp; Copy Code</em>, the application is marked as approved and the ready-to-paste code block is copied to your clipboard. Open <code>script.js</code>, find the <code>INSTRUCTORS</code> array, and paste before the closing <code>]</code>. Do the same for the <code>CONTACT</code> entry. Then upload the instructor's photo.</p>
-        <p style="margin-top:8px">⚠️ Data is stored in <strong>this browser only</strong>. Do not clear site data or it will be lost. Access this page via <code>index.html?key=${ADMIN_PASSWORD}#admin</code></p>
+        <p>💡 <strong>How it works:</strong> Click <em>Approve &amp; Publish Live</em> and the profile appears on the site instantly — home page, find page, and a full profile URL. Click <em>Remove from Site</em> on an approved card to take it down immediately.</p>
+        <p style="margin-top:8px">⚠️ Live profiles are stored in <strong>this browser's localStorage</strong>. For permanent profiles visible to all visitors, also paste the generated code into <code>script.js</code> and push to GitHub. Access this page via <code>index.html?key=${ADMIN_PASSWORD}#admin</code></p>
       </div>
     </div>`;
 }
@@ -1447,39 +1470,84 @@ function bindAdminEvents() {
     });
   });
 
-  // Approve button — mark approved + auto-copy INSTRUCTORS block
+  // View live profile button
+  document.querySelectorAll('.admin-view-live-btn').forEach(btn => {
+    btn.addEventListener('click', () => navigate('profile', btn.dataset.slug));
+  });
+
+  // Approve button — instantly publishes the profile live on the site
   document.querySelectorAll('.admin-approve-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const appId = btn.dataset.appid;
+      let apps = [];
+      try { apps = JSON.parse(localStorage.getItem('pdin_applications') || '[]'); } catch(e) {}
+      const idx = apps.findIndex(a => a.id === appId);
+      if (idx === -1) return;
+      const app = apps[idx];
+      apps[idx].status = 'approved';
+      try { localStorage.setItem('pdin_applications', JSON.stringify(apps)); } catch(e) {}
+
+      // Build a full instructor object from the application
+      const expYears   = app.exp ? (new Date().getFullYear() - parseInt(app.exp)) : 0;
+      const expLabel   = expYears >= 10 ? expYears + '+ years' : expYears >= 1 ? expYears + ' years' : 'Under 1 year';
+      const idSlug     = app.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+      const initials   = app.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const availLabel = (app.availDays||[]).join(' / ') || 'Contact instructor';
+      const feesArr    = [{ duration: '60 min', price: '$' + app.fee60 }];
+      if (app.fee90) feesArr.push({ duration: '90 min', price: '$' + app.fee90 });
+      const vehiclesArr = [];
+      if (app.vAuto)   vehiclesArr.push({ type: 'Auto',   car: app.vAuto });
+      if (app.vManual) vehiclesArr.push({ type: 'Manual', car: app.vManual });
+
+      const liveProfile = {
+        id:           idSlug,
+        initials,
+        name:         app.name,
+        title:        'Professional Driving Instructor',
+        baseSuburb:   app.suburb,
+        baseLat:      null,
+        baseLng:      null,
+        serviceRadius: parseInt(app.radius) || 10,
+        travelBonus:  false,
+        travelFee:    false,
+        location:     app.suburb + ' &amp; surrounding suburbs',
+        experience:   expLabel,
+        customQS:     true,
+        lessonFees:   feesArr,
+        vehicles:     vehiclesArr,
+        availability: availLabel,
+        expertiseIds: app.expertiseIds || [],
+        seniorBadge:  expYears >= 10,
+        photo:        null,
+        bio:          app.bio || '',
+        languages:    app.languages || [],
+        _fromApp:     appId,
+      };
+
       try {
-        const apps = JSON.parse(localStorage.getItem('pdin_applications') || '[]');
-        const idx  = apps.findIndex(a => a.id === appId);
-        if (idx !== -1) apps[idx].status = 'approved';
-        localStorage.setItem('pdin_applications', JSON.stringify(apps));
+        const live = JSON.parse(localStorage.getItem('pdin_live_profiles') || '[]');
+        const eIdx = live.findIndex(p => p._fromApp === appId);
+        if (eIdx >= 0) live[eIdx] = liveProfile; else live.push(liveProfile);
+        localStorage.setItem('pdin_live_profiles', JSON.stringify(live));
       } catch(e) {}
 
-      // Copy INSTRUCTORS code to clipboard
-      const pre = document.getElementById('code-instructors-' + appId);
-      if (pre) {
-        navigator.clipboard.writeText(pre.textContent).then(() => {
-          showToast('✓ Approved! INSTRUCTORS code copied to clipboard. Paste it into script.js then copy the CONTACT entry too.');
-        }).catch(() => {
-          showToast('Approved! Open the code block to copy it manually.');
-        });
-      }
-      setTimeout(() => navigate('admin'), 300);
+      showToast('✅ ' + app.name + ' is now live on the website!');
+      setTimeout(() => navigate('admin'), 400);
     });
   });
 
-  // Reject
+  // Reject / Remove from site
   document.querySelectorAll('.admin-reject-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (!confirm('Mark this application as rejected?')) return;
+      if (!confirm('Reject this application? If already approved, the profile will be removed from the site.')) return;
       try {
         const apps = JSON.parse(localStorage.getItem('pdin_applications') || '[]');
         const idx  = apps.findIndex(a => a.id === btn.dataset.appid);
         if (idx !== -1) apps[idx].status = 'rejected';
         localStorage.setItem('pdin_applications', JSON.stringify(apps));
+        // Remove from live profiles
+        const live = JSON.parse(localStorage.getItem('pdin_live_profiles') || '[]');
+        localStorage.setItem('pdin_live_profiles', JSON.stringify(live.filter(p => p._fromApp !== btn.dataset.appid)));
       } catch(e) {}
       navigate('admin');
     });
