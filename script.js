@@ -50,33 +50,34 @@ const EXPERTISE_CATEGORIES = [
   {
     group: 'Core Instruction Areas',
     items: [
-      { id: 'learner-drivers',      label: 'First-Time & Learner Drivers' },
-      { id: 'nervous-drivers',      label: 'Supporting Nervous Drivers and Building Driving Confidence' },
-      { id: 'adult-learners',       label: 'Adult Learners & Late Starters' },
+      { id: 'learner-drivers',      label: 'First-Time Learners' },
+      { id: 'nervous-drivers',      label: 'Nervous / Anxious Drivers' },
+      { id: 'adult-learners',       label: 'Adult Learners (Late Starters)' },
     ]
   },
   {
-    group: 'Driving Test Preparation & Training Systems',
+    group: 'Test Preparation',
     items: [
-      { id: 'vicroads-test',        label: 'VicRoads Test Preparation' },
-      { id: 'logbook-hours',        label: 'Logbook Hours & Structured Driving Plans' },
-      { id: 'refresher-lessons',    label: 'Refresher Lessons (returning drivers)' },
+      { id: 'vicroads-test',        label: 'VicRoads Drive Test Preparation' },
+      { id: 'logbook-hours',        label: 'Logbook Hours & Lesson Structure' },
+      { id: 'refresher-lessons',    label: 'Refresher Lessons (Returning Drivers)' },
     ]
   },
   {
-    group: 'Skill Development & Road Confidence',
+    group: 'Driving Confidence & Road Skills',
     items: [
       { id: 'defensive-driving',    label: 'Defensive Driving Techniques' },
       { id: 'highway-driving',      label: 'Highway & Long Distance Driving' },
-      { id: 'advanced-confidence',  label: 'Advanced Road Confidence & Decision Making' },
+      { id: 'city-driving',         label: 'City Driving & Complex Traffic Conditions' },
+      { id: 'advanced-confidence',  label: 'Decision Making & Hazard Awareness' },
     ]
   },
   {
-    group: 'Specialist Instruction Areas',
+    group: 'Specialist Areas',
     items: [
       { id: 'overseas-licence',     label: 'Overseas Licence Conversion' },
-      { id: 'manual-instruction',   label: 'Manual Driving Instruction' },
-      { id: 'senior-drivers',       label: 'Senior Driver Assessments & Refresher Training' },
+      { id: 'manual-instruction',   label: 'Manual Transmission Instruction' },
+      { id: 'senior-drivers',       label: 'Senior Driver Refresher Training' },
       { id: 'ndis-supported',       label: 'NDIS & Supported Driving Instruction' },
       { id: 'neurodiverse',         label: 'Neurodiverse Learners' },
     ]
@@ -89,6 +90,62 @@ function resolveExpertise(ids = []) {
   const lookup = {};
   EXPERTISE_CATEGORIES.forEach(g => g.items.forEach(item => { lookup[item.id] = item.label; }));
   return ids.map(id => lookup[id] || id);
+}
+
+/* =============================================
+   TEACHING APPROACH TAGS — SINGLE SOURCE OF TRUTH
+   ============================================= */
+const TEACHING_APPROACH_CATEGORIES = [
+  {
+    group: 'Personality & Approach',
+    items: [
+      { id: 'patient',            label: 'Patient' },
+      { id: 'calm',               label: 'Calm' },
+      { id: 'friendly',           label: 'Friendly' },
+      { id: 'supportive',         label: 'Supportive' },
+      { id: 'encouraging',        label: 'Encouraging' },
+      { id: 'reassuring',         label: 'Reassuring' },
+      { id: 'calm-under-pressure',label: 'Calm under pressure' },
+      { id: 'motivational',       label: 'Motivational' },
+      { id: 'strict-but-fair',    label: 'Strict but fair' },
+      { id: 'no-nonsense',        label: 'No-nonsense' },
+    ]
+  },
+  {
+    group: 'Lesson Style',
+    items: [
+      { id: 'structured',              label: 'Structured' },
+      { id: 'step-by-step',            label: 'Step-by-step' },
+      { id: 'flexible',                label: 'Flexible' },
+      { id: 'confidence-building',     label: 'Confidence-building' },
+      { id: 'real-world-focused',      label: 'Real-world focused' },
+      { id: 'test-focused',            label: 'Test-focused' },
+      { id: 'defensive-driving-focus', label: 'Defensive driving focused' },
+      { id: 'hazard-awareness-focus',  label: 'Hazard awareness focused' },
+      { id: 'highway-driving-focus',   label: 'Highway driving focus' },
+      { id: 'city-driving-focus',      label: 'City driving focus' },
+    ]
+  },
+];
+
+/* Helper: resolve an array of teaching-approach IDs → display labels. */
+function resolveTeachingApproach(ids = []) {
+  const lookup = {};
+  TEACHING_APPROACH_CATEGORIES.forEach(g => g.items.forEach(item => { lookup[item.id] = item.label; }));
+  return ids.map(id => lookup[id] || id);
+}
+
+/* Helper: build the join-form teaching-approach checkboxes from the master list */
+function buildTeachingApproachCheckboxes() {
+  return TEACHING_APPROACH_CATEGORIES.map(group => `
+    <p class="expertise-group-head">${group.group}</p>
+    <div class="join-expertise-grid expertise-group-items">
+      ${group.items.map(item => `
+        <label class="join-toggle-label">
+          <input type="checkbox" value="${item.id}" />
+          <span>${item.label}</span>
+        </label>`).join('')}
+    </div>`).join('');
 }
 
 /* Helper: build the join-form expertise checkboxes from the master list */
@@ -404,13 +461,23 @@ function instructorCardHTML(inst, distKm) {
     else if (inst.travelBonus && distKm <= inst.serviceRadius + 8) badge = `<span class="card-badge badge-travel">Travels for Longer Lessons</span>`;
   }
 
+  const locationLabel = inst.state
+    ? `${inst.baseSuburb}, ${inst.state} &amp; Surrounding Suburbs`
+    : inst.location;
+
   const distLabel = distKm !== undefined
     ? `<div class="card-dist-row">${ICONS.mapPin} ${inst.baseSuburb} &bull; <strong>${distKm.toFixed(1)} km away</strong></div>`
-    : `<div class="card-meta-row">${ICONS.pin} ${inst.location}</div>`;
+    : `<div class="card-meta-row">${ICONS.pin} ${locationLabel}</div>`;
+
+  // Tagline: prefer Teaching Approach tags submitted via the join form; fall back to a sensible default
+  const teachingLabels = (inst.teachingApproachIds && inst.teachingApproachIds.length)
+    ? resolveTeachingApproach(inst.teachingApproachIds)
+    : null;
+  const tagline = teachingLabels ? teachingLabels.join(', ') : 'Patient, calm and supportive';
 
   let metaRows = inst.customQS
-    ? `${distLabel}<div class="card-meta-row">${ICONS.car} Manual &amp; Automatic</div><div class="card-meta-row card-tagline">${ICONS.user} Patient, calm and supportive</div><div class="card-meta-row">${ICONS.clock} ${inst.experience}</div>`
-    : `${distLabel}<div class="card-meta-row">${ICONS.car} ${inst.transmission}</div><div class="card-meta-row">${ICONS.clock} ${inst.experience}</div>`;
+    ? `${distLabel}<div class="card-meta-row">${ICONS.car} Manual &amp; Auto</div><div class="card-meta-row card-tagline">${ICONS.user} ${tagline}</div><div class="card-meta-row">${ICONS.clock} ${inst.experience} experience</div>`
+    : `${distLabel}<div class="card-meta-row">${ICONS.car} ${inst.transmission}</div><div class="card-meta-row">${ICONS.clock} ${inst.experience} experience</div>`;
 
   return `
     <div class="card" data-action="profile" data-id="${inst.id}">
@@ -425,11 +492,28 @@ function instructorCardHTML(inst, distKm) {
 
 /* =============================================
    LIVE PROFILE HELPERS
-   Approved applications are stored in pdin_live_profiles
-   and merged with hardcoded INSTRUCTORS at runtime.
+   Approved applications are stored in Firestore ("live_profiles"
+   collection) so they appear on the site for every visitor, on any
+   device. A real-time listener keeps _liveProfilesCache up to date;
+   getLiveProfiles() just reads that cache so existing render code
+   (which is synchronous) doesn't need to change.
    ============================================= */
+let _liveProfilesCache = [];
+
+function startLiveProfilesListener() {
+  db.collection('live_profiles').onSnapshot(snap => {
+    _liveProfilesCache = snap.docs.map(d => d.data());
+    // Re-render the current page if it shows instructor listings, so
+    // newly approved profiles appear without a manual refresh.
+    const page = (location.hash || '#home').replace('#','').split('/')[0];
+    if (['home','find','profile'].includes(page)) {
+      navigate(page, history.state?.extra, false);
+    }
+  }, err => console.error('live_profiles listener error:', err));
+}
+
 function getLiveProfiles() {
-  try { return JSON.parse(localStorage.getItem('pdin_live_profiles') || '[]'); } catch(e) { return []; }
+  return _liveProfilesCache;
 }
 function getAllInstructors() {
   const live = getLiveProfiles();
@@ -556,7 +640,7 @@ function renderProfile(id) {
   const serviceAreaBlock = `
     <div class="qs-block">
       <div class="qs-item-label">Service Area</div>
-      <div class="qs-item-value">Based in ${inst.baseSuburb}</div>
+      <div class="qs-item-value">Based in ${inst.baseSuburb}${inst.state ? ', ' + inst.state : ''}</div>
       <div class="qs-item-value">Travel Range: ${inst.serviceRadius} km</div>
       ${inst.travelBonus ? `<div class="qs-item-value qs-travel-note">Travel outside service area may be available by arrangement (additional fee may apply).</div>` : ''}
       ${inst.travelFee   ? `<div class="qs-item-value qs-travel-note">May charge travel fee for outer areas</div>` : ''}
@@ -567,6 +651,8 @@ function renderProfile(id) {
     // Resolve expertise IDs → labels from the centralized EXPERTISE_CATEGORIES master list
     const expertiseLabels = resolveExpertise(inst.expertiseIds || inst.areasOfExpertise || []);
     const expertiseHTML = expertiseLabels.map(a => `<li>${a}</li>`).join('');
+    const teachingLabels = resolveTeachingApproach(inst.teachingApproachIds || []);
+    const teachingHTML = teachingLabels.map(a => `<li>${a}</li>`).join('');
     const feesHTML      = inst.lessonFees.map(f => `<div class="qs-item-value">${f.duration} — ${f.price}</div>`).join('');
     const vehiclesHTML  = inst.vehicles.map(v => `<div class="qs-item-value">${v.type} — ${v.car}</div>`).join('');
     const credTag = (provided) => provided
@@ -583,6 +669,7 @@ function renderProfile(id) {
       <div class="qs-col-left">
         <div class="qs-block"><div class="qs-item-label">Experience</div><div class="qs-item-value">${inst.experience}</div></div>
         ${credentialsBlock}
+        ${teachingHTML ? `<div class="qs-block"><div class="qs-item-label">Teaching Approach</div><ul class="qs-expertise-list">${teachingHTML}</ul></div>` : ''}
         <div class="qs-block"><div class="qs-item-label">Areas of Expertise</div><ul class="qs-expertise-list">${expertiseHTML}</ul></div>
       </div>
       <div class="qs-col-right">
@@ -677,7 +764,7 @@ function renderJoin() {
         <!-- Progress bar -->
         <div class="join-progress-wrap" id="join-progress-wrap">
           <div class="join-progress-bar"><div class="join-progress-fill" id="join-progress-fill"></div></div>
-          <div class="join-progress-label" id="join-progress-label">Step 1 of 7</div>
+          <div class="join-progress-label" id="join-progress-label">Step 1 of 8</div>
         </div>
 
         <!-- ── STEP 1: Personal Details ── -->
@@ -750,13 +837,29 @@ function renderJoin() {
           </div>
           <div class="join-step-nav">
             <button class="btn btn-outline join-back-btn" data-back="1">← Back</button>
-            <button class="btn btn-navy join-next-btn" data-next="3">Next: Areas of Expertise →</button>
+            <button class="btn btn-navy join-next-btn" data-next="3">Next: Teaching Approach →</button>
           </div>
         </div>
 
-        <!-- ── STEP 3: Areas of Expertise ── -->
+        <!-- ── STEP 3: Teaching Approach ── -->
         <div class="join-step" id="join-step-3" style="display:none">
-          <div class="form-section-head join-step-head"><span class="join-step-num">3</span> Areas of Expertise <span style="font-size:12px;font-weight:400;color:var(--text-light)">(select 3–5)</span></div>
+          <div class="form-section-head join-step-head"><span class="join-step-num">3</span> Teaching Approach <span style="font-size:12px;font-weight:400;color:var(--text-light)">(Select a total of 2–3)</span></div>
+          <p style="font-size:14px;color:var(--text-light);margin:-4px 0 18px;">Choose words that best describe your teaching style and how lessons feel for your students.</p>
+          <div class="form-group">
+            <div id="join-teaching-grid">
+              ${buildTeachingApproachCheckboxes()}
+            </div>
+            <small class="form-hint" id="teaching-count-hint">Most instructors choose 2–3 tags that reflect both their personality and how they run lessons.</small>
+          </div>
+          <div class="join-step-nav">
+            <button class="btn btn-outline join-back-btn" data-back="2">← Back</button>
+            <button class="btn btn-navy join-next-btn" data-next="4">Next: Areas of Expertise →</button>
+          </div>
+        </div>
+
+        <!-- ── STEP 4: Areas of Expertise ── -->
+        <div class="join-step" id="join-step-4" style="display:none">
+          <div class="form-section-head join-step-head"><span class="join-step-num">4</span> Areas of Expertise <span style="font-size:12px;font-weight:400;color:var(--text-light)">(Select a total of 3–5)</span></div>
           <p style="font-size:14px;color:var(--text-light);margin:-4px 0 18px;">Choose the learners you enjoy working with most.</p>
           <div class="form-group">
             <div id="join-expertise-grid">
@@ -765,17 +868,48 @@ function renderJoin() {
             <small class="form-hint expertise-count-hint" id="expertise-count-hint"></small>
           </div>
           <div class="join-step-nav">
-            <button class="btn btn-outline join-back-btn" data-back="2">← Back</button>
-            <button class="btn btn-navy join-next-btn" data-next="4">Next: Lesson Locations →</button>
+            <button class="btn btn-outline join-back-btn" data-back="3">← Back</button>
+            <button class="btn btn-navy join-next-btn" data-next="5">Next: Lesson Locations →</button>
           </div>
         </div>
 
-        <!-- ── STEP 4: Lesson Locations ── -->
-        <div class="join-step" id="join-step-4" style="display:none">
-          <div class="form-section-head join-step-head"><span class="join-step-num">4</span> Lesson Locations</div>
+        <!-- ── STEP 5: Lesson Locations ── -->
+        <div class="join-step" id="join-step-5" style="display:none">
+          <div class="form-section-head join-step-head"><span class="join-step-num">5</span> Lesson Locations</div>
           <div class="form-group">
-            <label class="form-label">Primary Suburb <span>*</span></label>
-            <input type="text" class="form-input" placeholder="e.g. Doncaster VIC" id="join-suburb" />
+            <label class="form-label">Primary Suburb / Local Area <span>*</span></label>
+            <input type="text" class="form-input" placeholder="e.g. Burwood, Doncaster, Geelong" id="join-suburb" list="join-suburb-list" autocomplete="off" />
+            <datalist id="join-suburb-list">
+              <option value="Burwood"></option>
+              <option value="Doncaster"></option>
+              <option value="Geelong"></option>
+              <option value="Vermont"></option>
+              <option value="Box Hill"></option>
+              <option value="Melbourne CBD"></option>
+              <option value="Footscray"></option>
+              <option value="Frankston"></option>
+              <option value="Dandenong"></option>
+              <option value="Ringwood"></option>
+              <option value="Werribee"></option>
+              <option value="Bendigo"></option>
+              <option value="Ballarat"></option>
+              <option value="Geelong West"></option>
+              <option value="Glen Waverley"></option>
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label">State <span>*</span></label>
+            <select class="form-input" id="join-state">
+              <option value="" disabled selected>Select state…</option>
+              <option value="VIC">VIC</option>
+              <option value="NSW">NSW</option>
+              <option value="QLD">QLD</option>
+              <option value="SA">SA</option>
+              <option value="WA">WA</option>
+              <option value="TAS">TAS</option>
+              <option value="ACT">ACT</option>
+              <option value="NT">NT</option>
+            </select>
           </div>
           <div class="form-group">
             <label class="form-label">How far are you willing to travel?</label>
@@ -788,14 +922,14 @@ function renderJoin() {
             </select>
           </div>
           <div class="join-step-nav">
-            <button class="btn btn-outline join-back-btn" data-back="3">← Back</button>
-            <button class="btn btn-navy join-next-btn" data-next="5">Next: Availability &amp; Lesson Details →</button>
+            <button class="btn btn-outline join-back-btn" data-back="4">← Back</button>
+            <button class="btn btn-navy join-next-btn" data-next="6">Next: Availability &amp; Lesson Details →</button>
           </div>
         </div>
 
-        <!-- ── STEP 5: Availability & Lesson Details ── -->
-        <div class="join-step" id="join-step-5" style="display:none">
-          <div class="form-section-head join-step-head"><span class="join-step-num">5</span> Availability &amp; Lesson Details</div>
+        <!-- ── STEP 6: Availability & Lesson Details ── -->
+        <div class="join-step" id="join-step-6" style="display:none">
+          <div class="form-section-head join-step-head"><span class="join-step-num">6</span> Availability &amp; Lesson Details</div>
           <div class="form-group">
             <label class="form-label">Preferred Days</label>
             <div class="join-avail-grid">
@@ -813,7 +947,7 @@ function renderJoin() {
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Typical Availability Notes <span class="form-label-optional">(optional)</span></label>
+            <label class="form-label">Additional Availability Information <span class="form-label-optional">(optional)</span></label>
             <input type="text" class="form-input" id="avail-specific" placeholder='e.g. "Usually available weekdays after 3pm."' />
           </div>
 
@@ -836,28 +970,28 @@ function renderJoin() {
           </div>
 
           <div class="join-step-nav">
-            <button class="btn btn-outline join-back-btn" data-back="4">← Back</button>
-            <button class="btn btn-navy join-next-btn" data-next="6">Next: About You →</button>
+            <button class="btn btn-outline join-back-btn" data-back="5">← Back</button>
+            <button class="btn btn-navy join-next-btn" data-next="7">Next: About You →</button>
           </div>
         </div>
 
-        <!-- ── STEP 6: About You ── -->
-        <div class="join-step" id="join-step-6" style="display:none">
-          <div class="form-section-head join-step-head"><span class="join-step-num">6</span> About You</div>
+        <!-- ── STEP 7: About You ── -->
+        <div class="join-step" id="join-step-7" style="display:none">
+          <div class="form-section-head join-step-head"><span class="join-step-num">7</span> About You</div>
           <div class="form-group">
             <label class="form-label">Tell us about yourself</label>
             <small class="form-hint" style="display:block;margin-bottom:8px">Tell learners a little about your teaching style, experience, personality, and what type of students you work best with.</small>
             <textarea class="form-input" placeholder="e.g. I'm a calm and patient driving instructor who focuses on building confidence through simple, structured lessons. I work with a range of students, including beginners, nervous drivers, and those preparing for their driving test. My goal is to help learners become safe, independent drivers not just pass the driving test." id="join-bio" style="min-height:140px"></textarea>
           </div>
           <div class="join-step-nav">
-            <button class="btn btn-outline join-back-btn" data-back="5">← Back</button>
-            <button class="btn btn-navy join-next-btn" data-next="7">Next: Compliance →</button>
+            <button class="btn btn-outline join-back-btn" data-back="6">← Back</button>
+            <button class="btn btn-navy join-next-btn" data-next="8">Next: Compliance →</button>
           </div>
         </div>
 
-        <!-- ── STEP 7: Compliance & Declaration ── -->
-        <div class="join-step" id="join-step-7" style="display:none">
-          <div class="form-section-head join-step-head"><span class="join-step-num">7</span> Instructor Requirements &amp; Compliance</div>
+        <!-- ── STEP 8: Compliance & Declaration ── -->
+        <div class="join-step" id="join-step-8" style="display:none">
+          <div class="form-section-head join-step-head"><span class="join-step-num">8</span> Instructor Requirements &amp; Compliance</div>
           <div class="form-group join-requirements-group">
             <div class="join-req-subtitle">Please review and confirm you meet all of the following requirements:</div>
             <div class="join-req-box">
@@ -890,13 +1024,11 @@ function renderJoin() {
             </div>
           </div>
           <div class="join-step-nav">
-            <button class="btn btn-outline join-back-btn" data-back="6">← Back</button>
-            <span></span>
+            <button class="btn btn-outline join-back-btn" data-back="7">← Back</button>
           </div>
           <button class="btn btn-navy btn-full btn-lg" id="join-submit" style="margin-top:24px">Apply to Join</button>
           <div class="join-approval-notice">
-            <p>Once your instructor profile has been approved, you will receive a confirmation email. Your profile, including your photo and submitted details, will then be visible to users, allowing them to view your information and contact you directly.</p>
-            <p>If you have any questions or require assistance, please contact our team at <a href="mailto:support@professionaldrivinginstructorsnetwork.com">support@professionaldrivinginstructorsnetwork.com</a></p>
+            <p>Once your instructor profile has been approved, you will receive a confirmation email. Your profile, including your photo and submitted details, will then be visible to users, allowing them to view your information and contact you directly. If you need to edit or update your profile at any time, or if you have any questions or require assistance, please contact our team at <a href="mailto:support@professionaldrivinginstructorsnetwork.com">support@professionaldrivinginstructorsnetwork.com</a>.</p>
           </div>
           <p class="join-reserve-note">Professional Driving Instructors Network reserves the right to verify credentials before approval.</p>
         </div>
@@ -1158,13 +1290,20 @@ function setButtonLoading(btnId, loading, originalText) {
 function showFormError(containerId, message) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  const existing = container.querySelector('.form-error-msg');
+  // Insert the error inside the currently VISIBLE step only — join-form-box
+  // contains buttons from every step (most hidden), so anchoring to "the
+  // first button in the form box" can place the message off-screen or next
+  // to a hidden step's button instead of next to what the visitor can see.
+  const visibleStep = [...container.querySelectorAll('.join-step')]
+    .find(step => step.style.display !== 'none') || container;
+  const existing = visibleStep.querySelector('.form-error-msg');
   if (existing) existing.remove();
   const err = document.createElement('p');
   err.className = 'form-error-msg';
   err.textContent = message;
-  const btn = container.querySelector('button');
-  if (btn) btn.before(err); else container.appendChild(err);
+  const navRow = visibleStep.querySelector('.join-step-nav');
+  if (navRow) navRow.before(err); else visibleStep.appendChild(err);
+  err.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 /* =============================================
@@ -1226,7 +1365,7 @@ function getPageContent(page, extra) {
     case 'pricing': return renderPricing();
     case 'contact': return renderContact();
     case 'stats':   return renderStatsPage();
-    case 'admin':   return renderAdminPage(extra);
+    case 'admin':   return renderAdminPage(extra); // initial sync render (login gate or loading state); real data loads async in navigate()
     default:        return renderHome();
   }
 }
@@ -1235,35 +1374,112 @@ function getPageContent(page, extra) {
 /* =============================================
    ADMIN PAGE — pending applications (#admin?key=…)
    ============================================= */
-const ADMIN_PASSWORD = 'pdin2026admin'; // ← change this to your own password
+// Admin access is now controlled by Firebase Authentication (real sign-in)
+// plus Firestore Security Rules — see firestore.rules.txt. There is no
+// password stored in this file anymore.
 
-function renderAdminPage(extra) {
-  // Password check via URL: #admin?key=yourpassword
-  const params = new URLSearchParams(window.location.search);
-  const key    = params.get('key') || '';
-  if (key !== ADMIN_PASSWORD) {
+/* Build a live_profiles document from an application record.
+   Shared by the "Approve & Publish Live" action and by "Restore from
+   Trash" (when restoring a record that was approved before it was
+   trashed), so both produce an identical live profile. */
+function buildLiveProfileFromApp(app, appId) {
+  const expYears    = app.exp ? (new Date().getFullYear() - parseInt(app.exp)) : 0;
+  const expLabel    = expYears >= 10 ? expYears + '+ years' : expYears >= 1 ? expYears + ' years' : 'Under 1 year';
+  const idSlug      = app.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+  const initials    = app.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const availLabel  = (app.availDays||[]).join(' / ') || 'Contact instructor';
+  const feesArr     = [{ duration: '60 min', price: '$' + app.fee60 }];
+  if (app.fee90)    feesArr.push({ duration: '90 min', price: '$' + app.fee90 });
+  const vehiclesArr = [];
+  if (app.vAuto)    vehiclesArr.push({ type: 'Auto',   car: app.vAuto });
+  if (app.vManual)  vehiclesArr.push({ type: 'Manual', car: app.vManual });
+
+  const liveProfile = {
+    id:           idSlug,
+    initials,
+    name:         app.name,
+    title:        'Professional Driving Instructor',
+    baseSuburb:   app.suburb,
+    state:        app.state || '',
+    baseLat:      null,
+    baseLng:      null,
+    serviceRadius: parseInt(app.radius) || 10,
+    travelBonus:  false,
+    travelFee:    false,
+    location:     app.suburb + (app.state ? ', ' + app.state : '') + ' &amp; Surrounding Suburbs',
+    experience:   expLabel,
+    customQS:     true,
+    lessonFees:   feesArr,
+    vehicles:     vehiclesArr,
+    availability: availLabel,
+    teachingApproachIds: app.teachingApproachIds || [],
+    expertiseIds: app.expertiseIds || [],
+    credentials:  { dia: !!(app.dia), wwcc: !!(app.wwcc) },
+    seniorBadge:  expYears >= 10,
+    photo:        null,
+    photoDataUrl: app.photoDataUrl || null,
+    bio:          app.bio || '',
+    languages:    app.languages || [],
+    _fromApp:     appId,
+  };
+  return { idSlug, liveProfile };
+}
+
+/* Trash retention window — records in Trash older than this are
+   permanently purged automatically (see purgeExpiredTrash). */
+const TRASH_RETENTION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+/* Sweep the in-memory applications list for trashed records whose 24h
+   window has elapsed, permanently delete them (and any orphaned live
+   profile) from Firestore, and return the list with them removed.
+   Called every time the admin page loads applications, so the purge
+   happens automatically without needing a server-side cron job. */
+function purgeExpiredTrash(apps) {
+  const now = Date.now();
+  const expired = apps.filter(a => {
+    if (a.status !== 'trashed' || !a.trashedAt) return false;
+    const trashedDate = a.trashedAt.toDate ? a.trashedAt.toDate() : new Date(a.trashedAt);
+    return (now - trashedDate.getTime()) > TRASH_RETENTION_MS;
+  });
+  if (!expired.length) return Promise.resolve(apps);
+
+  return Promise.all(expired.map(a =>
+    Promise.all([
+      db.collection('applications').doc(a.id).delete(),
+      db.collection('live_profiles').where('_fromApp', '==', a.id).get()
+        .then(snap => Promise.all(snap.docs.map(d => d.ref.delete())))
+    ])
+  )).then(() => apps.filter(a => !expired.includes(a)))
+    .catch(err => { console.error('Trash auto-purge failed:', err); return apps; });
+}
+
+function renderAdminPage(extra, apps) {
+  // Not signed in → show login form instead of a password box
+  if (!auth.currentUser) {
     return `
       <div class="admin-gate">
         <div class="admin-gate-box">
           <div class="admin-gate-logo">🔒</div>
-          <h2>Admin Access</h2>
-          <p>Enter the admin password to continue.</p>
+          <h2>Admin Sign In</h2>
+          <p>Sign in with your admin account to continue.</p>
           <div class="form-group" style="margin-top:18px">
-            <input type="password" class="form-input" id="admin-key-input" placeholder="Password" autocomplete="current-password" />
+            <input type="email" class="form-input" id="admin-email-input" placeholder="Email" autocomplete="username" style="margin-bottom:10px" />
+            <input type="password" class="form-input" id="admin-pass-input" placeholder="Password" autocomplete="current-password" />
           </div>
-          <button class="btn btn-navy btn-full" id="admin-key-btn" style="margin-top:10px">Unlock</button>
-          <p id="admin-key-error" class="admin-key-error" style="display:none">Incorrect password.</p>
+          <button class="btn btn-navy btn-full" id="admin-key-btn" style="margin-top:10px">Sign In</button>
+          <p id="admin-key-error" class="admin-key-error" style="display:none">Incorrect email or password.</p>
         </div>
       </div>`;
   }
 
-  // Load applications from localStorage
-  let apps = [];
-  try { apps = JSON.parse(localStorage.getItem('pdin_applications') || '[]'); } catch(e) {}
+  // apps is fetched asynchronously from Firestore by navigate() before this
+  // function is called with real data; until then it may be undefined.
+  apps = apps || [];
 
   const pending  = apps.filter(a => a.status === 'pending');
   const approved = apps.filter(a => a.status === 'approved');
   const rejected = apps.filter(a => a.status === 'rejected');
+  const trashed  = apps.filter(a => a.status === 'trashed');
 
   function appCard(app) {
     const initials   = app.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -1272,12 +1488,30 @@ function renderAdminPage(extra) {
     const vehicles   = [app.vAuto ? 'Auto: ' + app.vAuto : '', app.vManual ? 'Manual: ' + app.vManual : ''].filter(Boolean).join(' · ') || '(none listed)';
     const avail      = [...(app.availDays||[]), ...(app.availTimes||[])].join(', ') || '(not specified)';
     const expertise  = resolveExpertise(app.expertiseIds || []);
-    const submitted  = new Date(app.submittedAt).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const teachingApproach = resolveTeachingApproach(app.teachingApproachIds || []);
+    const submittedDate = app.submittedAt && app.submittedAt.toDate ? app.submittedAt.toDate() : new Date(app.submittedAt || Date.now());
+    const submitted  = submittedDate.toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
     const statusBadge = app.status === 'approved'
       ? `<span class="admin-status-badge admin-badge-approved">✓ Approved</span>`
       : app.status === 'rejected'
       ? `<span class="admin-status-badge admin-badge-rejected">✕ Rejected</span>`
+      : app.status === 'trashed'
+      ? `<span class="admin-status-badge admin-badge-trashed">🗑 Trashed</span>`
       : `<span class="admin-status-badge admin-badge-pending">Pending Review</span>`;
+
+    // Countdown for trashed records — auto-purges 24h after trashedAt
+    let trashCountdown = '';
+    if (app.status === 'trashed' && app.trashedAt) {
+      const trashedDate = app.trashedAt.toDate ? app.trashedAt.toDate() : new Date(app.trashedAt);
+      const msLeft = TRASH_RETENTION_MS - (Date.now() - trashedDate.getTime());
+      if (msLeft > 0) {
+        const hrsLeft  = Math.floor(msLeft / 3600000);
+        const minsLeft = Math.floor((msLeft % 3600000) / 60000);
+        trashCountdown = `Permanently deletes in ${hrsLeft}h ${minsLeft}m unless restored.`;
+      } else {
+        trashCountdown = `Pending automatic permanent deletion…`;
+      }
+    }
 
     // Build the code block that gets copied on approve
     const idSlug     = app.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
@@ -1286,6 +1520,7 @@ function renderAdminPage(extra) {
     const vehiclesArr = [...(app.vAuto ? [`{ type: 'Auto',   car: '${app.vAuto}' }`] : []), ...(app.vManual ? [`{ type: 'Manual', car: '${app.vManual}' }`] : [])];
     const availLabel = [...(app.availDays||[])].join(' / ') || 'Weekdays';
     const expertiseIdStr = (app.expertiseIds||[]).map(id => `      '${id}',`).join('\n');
+    const teachingIdStr  = (app.teachingApproachIds||[]).map(id => `      '${id}',`).join('\n');
 
     const codeBlock = `  {
     id: '${idSlug}',
@@ -1293,11 +1528,12 @@ function renderAdminPage(extra) {
     name: '${app.name}',
     title: 'Professional Driving Instructor',
     baseSuburb: '${app.suburb}',
+    state: '${app.state || ''}',
     baseLat: -37.8136, baseLng: 144.9631,  // TODO: update with real coords for ${app.suburb}
     serviceRadius: ${app.radius || 10},
     travelBonus: false,
     travelFee: false,
-    location: '${app.suburb} & surrounding suburbs',
+    location: '${app.suburb}${app.state ? ', ' + app.state : ''} & Surrounding Suburbs',
     transmission: '${transmission}',
     experience: '${expLabel}',
     lessonFees: [
@@ -1307,6 +1543,9 @@ function renderAdminPage(extra) {
       ${vehiclesArr.join(',\n      ')},
     ],` : ''}
     availability: '${availLabel}',
+    teachingApproachIds: [
+${teachingIdStr}
+    ],
     expertiseIds: [
 ${expertiseIdStr}
     ],
@@ -1335,13 +1574,16 @@ ${expertiseIdStr}
         </div>
 
         <div class="admin-app-details">
-          <div class="admin-detail-row"><span class="admin-detail-label">Suburb / Area</span><span>${app.suburb} (radius: ${app.radius} km)</span></div>
+          <div class="admin-detail-row"><span class="admin-detail-label">Suburb / Area</span><span>${app.suburb}${app.state ? ', ' + app.state : ''} (radius: ${app.radius} km)</span></div>
           <div class="admin-detail-row"><span class="admin-detail-label">Experience</span><span>Since ${app.exp} (${expLabel})</span></div>
           <div class="admin-detail-row"><span class="admin-detail-label">Vehicles</span><span>${vehicles}</span></div>
           <div class="admin-detail-row"><span class="admin-detail-label">Languages</span><span>${(app.languages||[]).join(', ') || '(not specified)'}</span></div>
           <div class="admin-detail-row"><span class="admin-detail-label">Availability</span><span>${avail}${app.availSpecific ? ' — ' + app.availSpecific : ''}</span></div>
           <div class="admin-detail-row"><span class="admin-detail-label">Fees</span><span>60 min: $${app.fee60}${app.fee90 ? ' · 90 min: $'+app.fee90 : ''}</span></div>
           <div class="admin-detail-row"><span class="admin-detail-label">Photo uploaded</span><span>${app.photoName || '(none)'}</span></div>
+          <div class="admin-detail-row admin-detail-full"><span class="admin-detail-label">Teaching Approach</span>
+            <div class="admin-expertise-pills">${teachingApproach.map(e => `<span class="admin-expertise-pill">${e}</span>`).join('')}</div>
+          </div>
           <div class="admin-detail-row admin-detail-full"><span class="admin-detail-label">Expertise</span>
             <div class="admin-expertise-pills">${expertise.map(e => `<span class="admin-expertise-pill">${e}</span>`).join('')}</div>
           </div>
@@ -1356,17 +1598,17 @@ ${expertiseIdStr}
           </div>
         </details>
 
-        <!-- Code block -->
+        <!-- Optional: raw data reference (no longer required — Approve & Publish Live handles this automatically) -->
         <details class="admin-code-toggle">
-          <summary>📋 View generated code blocks</summary>
+          <summary>📋 View raw data (optional reference, not required)</summary>
           <div class="admin-code-wrap">
-            <p class="admin-code-label">1. Add this to the <code>INSTRUCTORS</code> array in <code>script.js</code>:</p>
+            <p class="admin-code-label">For reference only — clicking "Approve &amp; Publish Live" already does this automatically. <code>INSTRUCTORS</code>-style entry:</p>
             <pre class="admin-code-block" id="code-instructors-${app.id}">${escHtml(codeBlock)}</pre>
-            <button class="btn btn-outline admin-copy-btn" data-copy="code-instructors-${app.id}">Copy INSTRUCTORS entry</button>
+            <button class="btn btn-outline admin-copy-btn" data-copy="code-instructors-${app.id}">Copy</button>
 
-            <p class="admin-code-label" style="margin-top:18px">2. Add this to the <code>CONTACT</code> map in <code>script.js</code>:</p>
+            <p class="admin-code-label" style="margin-top:18px"><code>CONTACT</code>-style entry:</p>
             <pre class="admin-code-block" id="code-contact-${app.id}">${escHtml(contactBlock)}</pre>
-            <button class="btn btn-outline admin-copy-btn" data-copy="code-contact-${app.id}">Copy CONTACT entry</button>
+            <button class="btn btn-outline admin-copy-btn" data-copy="code-contact-${app.id}">Copy</button>
           </div>
         </details>
 
@@ -1374,16 +1616,21 @@ ${expertiseIdStr}
         <div class="admin-app-actions">
           <button class="btn btn-navy admin-approve-btn" data-appid="${app.id}">✓ Approve &amp; Publish Live</button>
           <button class="btn btn-outline admin-reject-btn" data-appid="${app.id}">✕ Reject</button>
-          <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Delete</button>
+          <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Move to Trash</button>
         </div>` : app.status === 'approved' ? `
         <div class="admin-app-actions">
           <button class="btn btn-outline admin-view-live-btn" data-slug="${app.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')}">👁 View Live Profile</button>
           <button class="btn btn-outline admin-reject-btn" data-appid="${app.id}" style="color:#c0392b;border-color:#c0392b">✕ Remove from Site</button>
-          <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Delete Record</button>
-        </div>` : `
+          <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Move to Trash</button>
+        </div>` : app.status === 'rejected' ? `
         <div class="admin-app-actions">
           <button class="btn btn-outline admin-restore-btn" data-appid="${app.id}">↩ Restore to Pending</button>
-          <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Delete Record</button>
+          <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Move to Trash</button>
+        </div>` : `
+        <div class="admin-trash-note">🗑 ${trashCountdown}</div>
+        <div class="admin-app-actions">
+          <button class="btn btn-navy admin-trash-restore-btn" data-appid="${app.id}">↩ Restore</button>
+          <button class="btn btn-outline admin-trash-purge-btn" data-appid="${app.id}" style="color:#c0392b;border-color:#c0392b">🗑 Delete Permanently</button>
         </div>`}
       </div>`;
   }
@@ -1394,13 +1641,15 @@ ${expertiseIdStr}
     <div class="admin-page">
       <div class="admin-page-header">
         <h1>Admin — Instructor Applications</h1>
-        <p>Applications submitted via the Join the Network form. Stored in this browser's local storage.</p>
+        <p>Signed in as ${auth.currentUser.email}. Applications submitted via the Join the Network form, synced live from any device.</p>
+        <button class="btn btn-outline" id="admin-signout-btn" style="margin-top:10px">Sign Out</button>
       </div>
 
       <div class="admin-tabs" id="admin-tabs">
         <button class="admin-tab active" data-tab="pending">Pending <span class="admin-tab-count">${pending.length}</span></button>
         <button class="admin-tab" data-tab="approved">Approved <span class="admin-tab-count">${approved.length}</span></button>
         <button class="admin-tab" data-tab="rejected">Rejected <span class="admin-tab-count">${rejected.length}</span></button>
+        <button class="admin-tab" data-tab="trash">🗑 Trash <span class="admin-tab-count">${trashed.length}</span></button>
       </div>
 
       <div class="admin-tab-panel" id="admin-panel-pending">
@@ -1412,10 +1661,13 @@ ${expertiseIdStr}
       <div class="admin-tab-panel" id="admin-panel-rejected" style="display:none">
         ${rejected.length ? rejected.map(appCard).join('') : noneMsg}
       </div>
+      <div class="admin-tab-panel" id="admin-panel-trash" style="display:none">
+        ${trashed.length ? trashed.map(appCard).join('') : `<div class="admin-empty">Trash is empty. Deleted records appear here for 24 hours before being permanently removed.</div>`}
+      </div>
 
       <div class="admin-footer-note">
-        <p>💡 <strong>How it works:</strong> When you click <em>Approve &amp; Copy Code</em>, the application is marked as approved and the ready-to-paste code block is copied to your clipboard. Open <code>script.js</code>, find the <code>INSTRUCTORS</code> array, and paste before the closing <code>]</code>. Do the same for the <code>CONTACT</code> entry. Then upload the instructor's photo.</p>
-        <p style="margin-top:8px">⚠️ Data is stored in <strong>this browser only</strong>. Do not clear site data or it will be lost. Access this page via <code>index.html?key=${ADMIN_PASSWORD}#admin</code></p>
+        <p>💡 <strong>How it works:</strong> Click <em>Approve &amp; Publish Live</em> to instantly publish an instructor's profile on the live website — no manual copy-paste needed. Applications and live profiles are stored in a shared cloud database, so this admin panel works the same from any device once you're signed in.</p>
+        <p>🗑 <strong>Trash:</strong> "Move to Trash" takes a record (and its live profile, if any) off the site but keeps it recoverable for 24 hours. Restore it any time within that window, or delete it permanently from the Trash tab. Anything left in Trash past 24 hours is removed automatically.</p>
       </div>
     </div>`;
 }
@@ -1426,6 +1678,7 @@ function renderPendingProfile(app) {
   const expYears   = app.exp ? (new Date().getFullYear() - parseInt(app.exp)) : 0;
   const expLabel   = expYears >= 1 ? expYears + '+ years' : 'Under 1 year';
   const expertise  = resolveExpertise(app.expertiseIds || []);
+  const teachingApproach = resolveTeachingApproach(app.teachingApproachIds || []);
   const transmission = [app.vAuto ? 'Automatic' : '', app.vManual ? 'Manual' : ''].filter(Boolean).join(' & ') || 'Automatic';
   const avail      = [...(app.availDays||[]), ...(app.availTimes||[])].join(' / ') || '(not specified)';
 
@@ -1449,13 +1702,13 @@ function renderPendingProfile(app) {
         <div>
           <div class="profile-name" style="font-size:22px">${app.name}${expYears >= 10 ? '<span class="senior-badge" title="10+ Years Experience">⭐</span>' : ''}</div>
           <div class="profile-title">Professional Driving Instructor</div>
-          <div class="profile-location">${ICONS.pin} ${app.suburb} &amp; surrounding suburbs</div>
+          <div class="profile-location">${ICONS.pin} ${app.suburb}${app.state ? ', ' + app.state : ''} &amp; Surrounding Suburbs</div>
         </div>
       </div>
       <div class="quick-summary" style="margin-top:20px">
         <div class="qs-title">Instructor Profile</div>
         <div class="qs-grid">
-          <div class="qs-item"><div class="qs-item-label">Service Area</div><div class="qs-item-value">Based in ${app.suburb}</div></div>
+          <div class="qs-item"><div class="qs-item-label">Service Area</div><div class="qs-item-value">Based in ${app.suburb}${app.state ? ', ' + app.state : ''}</div></div>
           <div class="qs-item"><div class="qs-item-label">Travel Radius</div><div class="qs-item-value">Up to ${app.radius} km</div></div>
           <div class="qs-item"><div class="qs-item-label">Transmission</div><div class="qs-item-value">${transmission}</div></div>
           <div class="qs-item"><div class="qs-item-label">Experience</div><div class="qs-item-value">${expLabel}</div></div>
@@ -1466,6 +1719,11 @@ function renderPendingProfile(app) {
         </div>
       </div>
       ${app.bio ? `<div class="profile-about" style="margin-top:20px"><div class="profile-about-inner"><h2>About ${app.name}</h2><p>${app.bio}</p></div></div>` : ''}
+      ${teachingApproach.length ? `
+        <div class="profile-expertise-wrap" style="margin-top:20px;padding:20px;background:var(--off-white);border-radius:var(--radius)">
+          <h3 style="font-size:15px;margin-bottom:14px;color:var(--text-dark)">Teaching Approach</h3>
+          <div class="expertise-tags">${teachingApproach.map(e=>`<span class="expertise-tag">${e}</span>`).join('')}</div>
+        </div>` : ''}
       ${expertise.length ? `
         <div class="profile-expertise-wrap" style="margin-top:20px;padding:20px;background:var(--off-white);border-radius:var(--radius)">
           <h3 style="font-size:15px;margin-bottom:14px;color:var(--text-dark)">Areas of Expertise</h3>
@@ -1481,23 +1739,28 @@ function escHtml(str) {
 
 /* Admin page event bindings */
 function bindAdminEvents() {
-  // Password gate
+  // Firebase Auth sign-in
   const keyBtn = document.getElementById('admin-key-btn');
   if (keyBtn) {
     const doUnlock = () => {
-      const val = document.getElementById('admin-key-input').value.trim();
-      if (val === ADMIN_PASSWORD) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('key', val);
-        window.location.href = url.toString();
-      } else {
-        document.getElementById('admin-key-error').style.display = 'block';
-      }
+      const email = document.getElementById('admin-email-input').value.trim();
+      const pass  = document.getElementById('admin-pass-input').value;
+      keyBtn.disabled = true; keyBtn.textContent = 'Signing in…';
+      auth.signInWithEmailAndPassword(email, pass)
+        .then(() => navigate('admin'))
+        .catch(() => {
+          keyBtn.disabled = false; keyBtn.textContent = 'Sign In';
+          document.getElementById('admin-key-error').style.display = 'block';
+        });
     };
     keyBtn.addEventListener('click', doUnlock);
-    document.getElementById('admin-key-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') doUnlock(); });
+    document.getElementById('admin-pass-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') doUnlock(); });
     return;
   }
+
+  // Sign out
+  const signOutBtn = document.getElementById('admin-signout-btn');
+  if (signOutBtn) signOutBtn.addEventListener('click', () => auth.signOut().then(() => navigate('admin')));
 
   // Tabs
   document.querySelectorAll('.admin-tab').forEach(tab => {
@@ -1530,61 +1793,25 @@ function bindAdminEvents() {
   document.querySelectorAll('.admin-approve-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const appId = btn.dataset.appid;
-      let apps = [];
-      try { apps = JSON.parse(localStorage.getItem('pdin_applications') || '[]'); } catch(e) {}
-      const idx = apps.findIndex(a => a.id === appId);
-      if (idx === -1) return;
-      const app = apps[idx];
-      apps[idx].status = 'approved';
-      try { localStorage.setItem('pdin_applications', JSON.stringify(apps)); } catch(e) {}
+      btn.disabled = true; btn.textContent = 'Publishing…';
 
-      const expYears    = app.exp ? (new Date().getFullYear() - parseInt(app.exp)) : 0;
-      const expLabel    = expYears >= 10 ? expYears + '+ years' : expYears >= 1 ? expYears + ' years' : 'Under 1 year';
-      const idSlug      = app.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-      const initials    = app.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      const availLabel  = (app.availDays||[]).join(' / ') || 'Contact instructor';
-      const feesArr     = [{ duration: '60 min', price: '$' + app.fee60 }];
-      if (app.fee90)    feesArr.push({ duration: '90 min', price: '$' + app.fee90 });
-      const vehiclesArr = [];
-      if (app.vAuto)    vehiclesArr.push({ type: 'Auto',   car: app.vAuto });
-      if (app.vManual)  vehiclesArr.push({ type: 'Manual', car: app.vManual });
+      db.collection('applications').doc(appId).get().then(doc => {
+        if (!doc.exists) return;
+        const app = doc.data();
+        const { idSlug, liveProfile } = buildLiveProfileFromApp(app, appId);
 
-      const liveProfile = {
-        id:           idSlug,
-        initials,
-        name:         app.name,
-        title:        'Professional Driving Instructor',
-        baseSuburb:   app.suburb,
-        baseLat:      null,
-        baseLng:      null,
-        serviceRadius: parseInt(app.radius) || 10,
-        travelBonus:  false,
-        travelFee:    false,
-        location:     app.suburb + ' &amp; surrounding suburbs',
-        experience:   expLabel,
-        customQS:     true,
-        lessonFees:   feesArr,
-        vehicles:     vehiclesArr,
-        availability: availLabel,
-        expertiseIds: app.expertiseIds || [],
-        credentials:  { dia: !!(app.dia), wwcc: !!(app.wwcc) },  // true if value was provided
-        seniorBadge:  expYears >= 10,
-        photo:        null,
-        photoDataUrl: app.photoDataUrl || null,
-        bio:          app.bio || '',
-        languages:    app.languages || [],
-        _fromApp:     appId,
-      };
-
-      try {
-        const live = JSON.parse(localStorage.getItem('pdin_live_profiles') || '[]');
-        const eIdx = live.findIndex(p => p._fromApp === appId);
-        if (eIdx >= 0) live[eIdx] = liveProfile; else live.push(liveProfile);
-        localStorage.setItem('pdin_live_profiles', JSON.stringify(live));
-      } catch(e) {}
-
-      showToast('✅ ' + app.name + ' is now live on the website!');
-      setTimeout(() => navigate('admin'), 400);
+        return Promise.all([
+          db.collection('applications').doc(appId).update({ status: 'approved' }),
+          db.collection('live_profiles').doc(idSlug).set(liveProfile)
+        ]).then(() => {
+          showToast('✅ ' + app.name + ' is now live on the website!');
+          setTimeout(() => navigate('admin'), 400);
+        });
+      }).catch(err => {
+        console.error('Approve failed:', err);
+        showToast('Could not publish this profile. Please try again.');
+        btn.disabled = false; btn.textContent = '✓ Approve & Publish Live';
+      });
     });
   });
 
@@ -1592,40 +1819,92 @@ function bindAdminEvents() {
   document.querySelectorAll('.admin-reject-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!confirm('Reject this application? If already approved, the profile will be removed from the site.')) return;
-      try {
-        const apps = JSON.parse(localStorage.getItem('pdin_applications') || '[]');
-        const idx  = apps.findIndex(a => a.id === btn.dataset.appid);
-        if (idx !== -1) apps[idx].status = 'rejected';
-        localStorage.setItem('pdin_applications', JSON.stringify(apps));
-        const live = JSON.parse(localStorage.getItem('pdin_live_profiles') || '[]');
-        localStorage.setItem('pdin_live_profiles', JSON.stringify(live.filter(p => p._fromApp !== btn.dataset.appid)));
-      } catch(e) {}
-      navigate('admin');
+      const appId = btn.dataset.appid;
+      btn.disabled = true;
+      db.collection('applications').doc(appId).update({ status: 'rejected' })
+        .then(() => {
+          // Find any live profile published from this application and remove it
+          return db.collection('live_profiles').where('_fromApp', '==', appId).get();
+        })
+        .then(snap => Promise.all(snap.docs.map(d => d.ref.delete())))
+        .then(() => navigate('admin'))
+        .catch(err => { console.error('Reject failed:', err); showToast('Could not reject this application.'); btn.disabled = false; });
     });
   });
 
   // Restore to pending
   document.querySelectorAll('.admin-restore-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      try {
-        const apps = JSON.parse(localStorage.getItem('pdin_applications') || '[]');
-        const idx  = apps.findIndex(a => a.id === btn.dataset.appid);
-        if (idx !== -1) apps[idx].status = 'pending';
-        localStorage.setItem('pdin_applications', JSON.stringify(apps));
-      } catch(e) {}
-      navigate('admin');
+      const appId = btn.dataset.appid;
+      btn.disabled = true;
+      db.collection('applications').doc(appId).update({ status: 'pending' })
+        .then(() => navigate('admin'))
+        .catch(err => { console.error('Restore failed:', err); showToast('Could not restore this application.'); btn.disabled = false; });
     });
   });
 
-  // Delete
+  // Move to Trash (soft delete — recoverable for 24h)
   document.querySelectorAll('.admin-delete-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (!confirm('Permanently delete this application record?')) return;
-      try {
-        const apps = JSON.parse(localStorage.getItem('pdin_applications') || '[]');
-        localStorage.setItem('pdin_applications', JSON.stringify(apps.filter(a => a.id !== btn.dataset.appid)));
-      } catch(e) {}
-      navigate('admin');
+      if (!confirm('Move this record to Trash? If it has a live profile, that will come off the site too. Trashed records are kept for 24 hours and can be restored, or permanently deleted from the Trash tab.')) return;
+      const appId = btn.dataset.appid;
+      btn.disabled = true;
+      db.collection('applications').doc(appId).get().then(doc => {
+        if (!doc.exists) return;
+        const prevStatus = doc.data().status;
+        return db.collection('applications').doc(appId).update({
+          status: 'trashed',
+          prevStatus: prevStatus,
+          trashedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+          // Take any associated live profile off the site while trashed
+          return db.collection('live_profiles').where('_fromApp', '==', appId).get();
+        }).then(snap => Promise.all(snap.docs.map(d => d.ref.delete())));
+      })
+      .then(() => navigate('admin'))
+      .catch(err => { console.error('Move to trash failed:', err); showToast('Could not move this record to trash.'); btn.disabled = false; });
+    });
+  });
+
+  // Restore from Trash — back to its previous status, re-publishing the
+  // live profile too if it was approved before being trashed
+  document.querySelectorAll('.admin-trash-restore-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const appId = btn.dataset.appid;
+      btn.disabled = true;
+      db.collection('applications').doc(appId).get().then(doc => {
+        if (!doc.exists) return;
+        const app = doc.data();
+        const restoredStatus = app.prevStatus || 'pending';
+        const updatePromise = db.collection('applications').doc(appId).update({
+          status: restoredStatus,
+          prevStatus: firebase.firestore.FieldValue.delete(),
+          trashedAt: firebase.firestore.FieldValue.delete()
+        });
+        if (restoredStatus === 'approved') {
+          const { idSlug, liveProfile } = buildLiveProfileFromApp(app, appId);
+          return Promise.all([updatePromise, db.collection('live_profiles').doc(idSlug).set(liveProfile)]);
+        }
+        return updatePromise;
+      })
+      .then(() => { showToast('↩ Restored from trash.'); navigate('admin'); })
+      .catch(err => { console.error('Restore from trash failed:', err); showToast('Could not restore this record.'); btn.disabled = false; });
+    });
+  });
+
+  // Permanently delete from Trash
+  document.querySelectorAll('.admin-trash-purge-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('Permanently delete this record? This cannot be undone.')) return;
+      const appId = btn.dataset.appid;
+      btn.disabled = true;
+      Promise.all([
+        db.collection('applications').doc(appId).delete(),
+        db.collection('live_profiles').where('_fromApp', '==', appId).get()
+          .then(snap => Promise.all(snap.docs.map(d => d.ref.delete())))
+      ])
+      .then(() => navigate('admin'))
+      .catch(err => { console.error('Permanent delete failed:', err); showToast('Could not permanently delete this record.'); btn.disabled = false; });
     });
   });
 }
@@ -1740,11 +2019,79 @@ function renderStatsPage() {
     </section>`;
 }
 
+/* =============================================
+   DYNAMIC SEO META UPDATER
+   Updates <title> and <meta description> on every
+   page navigation so Googlebot's JS renderer sees
+   unique, keyword-rich meta for each "page".
+   ============================================= */
+const SEO_META = {
+  home: {
+    title: 'Professional Driving Instructors Network | Find a Driving Instructor in Melbourne',
+    desc:  'Find experienced, independent driving instructors across Melbourne. Learner drivers, VicRoads test prep, manual & automatic lessons. Book direct — no middleman.',
+  },
+  find: {
+    title: 'Find a Driving Instructor in Melbourne | PDIN Directory',
+    desc:  'Browse and search our directory of qualified driving instructors across Melbourne. Filter by suburb, transmission type and specialty. Connect directly with your instructor.',
+  },
+  join: {
+    title: 'Join the Driving Instructors Network | Apply to List Your Profile',
+    desc:  'Are you a professional driving instructor in Melbourne? Join PDIN for free — keep 100% of your fees, get discovered by new students, and build your professional profile.',
+  },
+  about: {
+    title: 'About PDIN | Professional Driving Instructors Network Melbourne',
+    desc:  'Learn about the Professional Driving Instructors Network — a quality-focused directory connecting learner drivers with experienced, independent Melbourne driving instructors.',
+  },
+  pricing: {
+    title: 'Driving Lesson Prices Melbourne | PDIN Instructor Pricing',
+    desc:  'Transparent driving lesson pricing from PDIN instructors in Melbourne. Lesson rates from $90/hr. No hidden fees, no commissions — pay your instructor directly.',
+  },
+  contact: {
+    title: 'Contact PDIN | Professional Driving Instructors Network',
+    desc:  'Get in touch with the Professional Driving Instructors Network. Questions about joining, listings, or finding an instructor in Melbourne? We\'re happy to help.',
+  },
+};
+
+function updatePageMeta(page, extra) {
+  let meta = SEO_META[page];
+  // For profile pages, generate instructor-specific meta
+  if (page === 'profile' && extra) {
+    const inst = getAllInstructors().find(i => i.id === extra);
+    if (inst) {
+      meta = {
+        title: `${inst.name} — Driving Instructor in ${inst.baseSuburb}, Melbourne | PDIN`,
+        desc:  inst.bio ? inst.bio.slice(0, 155) + '…' : `${inst.name} is a professional driving instructor based in ${inst.baseSuburb}, Melbourne. View profile, lesson fees, and contact details.`,
+      };
+    }
+  }
+  if (!meta) meta = SEO_META.home;
+
+  // Update <title>
+  document.title = meta.title;
+
+  // Update <meta name="description">
+  let descEl = document.querySelector('meta[name="description"]');
+  if (descEl) descEl.setAttribute('content', meta.desc);
+
+  // Update Open Graph title + description
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  const ogDesc  = document.querySelector('meta[property="og:description"]');
+  const ogUrl   = document.querySelector('meta[property="og:url"]');
+  if (ogTitle) ogTitle.setAttribute('content', meta.title);
+  if (ogDesc)  ogDesc.setAttribute('content', meta.desc);
+  if (ogUrl)   ogUrl.setAttribute('content', `https://pdin.au/${extra ? '#' + page + '/' + extra : '#' + page}`);
+
+  // Update canonical
+  let canonEl = document.querySelector('link[rel="canonical"]');
+  if (canonEl) canonEl.setAttribute('href', `https://pdin.au/${extra ? '#' + page + '/' + extra : '#' + page}`);
+}
+
 function navigate(page, extra, pushState = true) {
   const app = document.getElementById('app');
   app.innerHTML = getPageContent(page, extra);
   requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' }));
   updateActiveLinks(page);
+  updatePageMeta(page, extra);   // ← SEO: update title + meta per page
   closeMenu();
   if (pushState) {
     const state = { page, extra: extra||null, searchLat: _searchLat||null, searchLng: _searchLng||null, searchLabel: _searchLabel||'' };
@@ -1753,6 +2100,25 @@ function navigate(page, extra, pushState = true) {
   }
   bindPageEvents();
   setTimeout(initReveal, 50);
+
+  // Admin page needs an async Firestore fetch once signed in. Re-render
+  // with real data after the synchronous login-gate/loading render above.
+  if (page === 'admin' && auth.currentUser) {
+    db.collection('applications').orderBy('submittedAt', 'desc').get()
+      .then(snap => {
+        const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        return purgeExpiredTrash(apps);
+      })
+      .then(apps => {
+        const appEl = document.getElementById('app');
+        if (appEl) appEl.innerHTML = renderAdminPage(extra, apps);
+        bindPageEvents();
+      })
+      .catch(err => {
+        console.error('Failed to load applications:', err);
+        showToast('Could not load applications. Check your connection and try again.');
+      });
+  }
 }
 
 function bindPageEvents() {
@@ -1924,16 +2290,18 @@ function bindPageEvents() {
       vManual:     get('join-vehicle-manual'),
       langOther:   get('join-lang-other'),
       suburb:      get('join-suburb'),
+      state:       get('join-state'),
       radius:      get('join-radius'),
       availNote:   get('avail-specific'),
       fee60:       get('join-fee-60'),
       fee90:       get('join-fee-90'),
       bio:         get('join-bio'),
       languages:   chks('#join-languages-grid input'),
+      teaching:    chks('#join-teaching-grid input'),
       expertise:   chks('#join-expertise-grid input'),
-      availDays:   chks('#join-step-5 input[type="checkbox"][id^="avail-weekdays"], #join-step-5 input[type="checkbox"][id^="avail-saturday"], #join-step-5 input[type="checkbox"][id^="avail-sunday"]'),
-      availTimes:  chks('#join-step-5 input[type="checkbox"][id^="avail-morning"], #join-step-5 input[type="checkbox"][id^="avail-afternoon"], #join-step-5 input[type="checkbox"][id^="avail-evening"]'),
-      decl:        chks('#join-step-7 input[type="checkbox"]'),
+      availDays:   chks('#join-step-6 input[type="checkbox"][id^="avail-weekdays"], #join-step-6 input[type="checkbox"][id^="avail-saturday"], #join-step-6 input[type="checkbox"][id^="avail-sunday"]'),
+      availTimes:  chks('#join-step-6 input[type="checkbox"][id^="avail-morning"], #join-step-6 input[type="checkbox"][id^="avail-afternoon"], #join-step-6 input[type="checkbox"][id^="avail-evening"]'),
+      decl:        chks('#join-step-8 input[type="checkbox"]'),
     };
   }
 
@@ -1945,16 +2313,26 @@ function bindPageEvents() {
     set('join-exp', d.exp);    set('join-dia', d.dia);    set('join-wwcc', d.wwcc);
     set('join-vehicle-auto', d.vAuto); set('join-vehicle-manual', d.vManual);
     set('join-lang-other', d.langOther);
-    set('join-suburb', d.suburb); set('join-radius', d.radius);
+    set('join-suburb', d.suburb); set('join-state', d.state); set('join-radius', d.radius);
     set('avail-specific', d.availNote); set('join-fee-60', d.fee60); set('join-fee-90', d.fee90); set('join-bio', d.bio);
     const restoreChecks = (sel, vals) => {
       if (!vals) return;
       document.querySelectorAll(sel).forEach(c => { c.checked = vals.includes(c.value); });
     };
     restoreChecks('#join-languages-grid input', d.languages);
+    restoreChecks('#join-teaching-grid input', d.teaching);
     restoreChecks('#join-expertise-grid input', d.expertise);
-    restoreChecks('#join-step-5 input[type="checkbox"]', [...(d.availDays||[]), ...(d.availTimes||[])]);
-    restoreChecks('#join-step-7 input[type="checkbox"]', d.decl);
+    restoreChecks('#join-step-6 input[type="checkbox"]', [...(d.availDays||[]), ...(d.availTimes||[])]);
+    restoreChecks('#join-step-8 input[type="checkbox"]', d.decl);
+    // Refresh Teaching Approach counter after restore
+    const teachingHint = document.getElementById('teaching-count-hint');
+    if (teachingHint) {
+      const tCount = (d.teaching || []).length;
+      if (tCount < 2) teachingHint.textContent = `Select at least ${2-tCount} more`;
+      else if (tCount > 3) teachingHint.textContent = 'Maximum 3 selected — please deselect one';
+      else teachingHint.textContent = `${tCount} selected ✓`;
+      teachingHint.style.color = (tCount < 2 || tCount > 3) ? '#e53e3e' : '#38a169';
+    }
     // Refresh expertise counter after restore
     const hint = document.getElementById('expertise-count-hint');
     if (hint) {
@@ -1969,13 +2347,13 @@ function bindPageEvents() {
   function updateJoinProgress(step) {
     const fill  = document.getElementById('join-progress-fill');
     const label = document.getElementById('join-progress-label');
-    if (fill)  fill.style.width  = Math.round((step / 7) * 100) + '%';
-    if (label) label.textContent = `Step ${step} of 7`;
+    if (fill)  fill.style.width  = Math.round((step / 8) * 100) + '%';
+    if (label) label.textContent = `Step ${step} of 8`;
   }
 
   // Central function: show a step, update progress, optionally push a history entry
   function goToJoinStep(step, pushToHistory) {
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= 8; i++) {
       const el = document.getElementById(`join-step-${i}`);
       if (el) el.style.display = (i === step) ? 'block' : 'none';
     }
@@ -2015,19 +2393,27 @@ function bindPageEvents() {
       }
       if (curStep === 2) {
         const dia = document.getElementById('join-dia')?.value.trim();
-        if (!dia) { showToast('Please complete all required fields before continuing.'); return; }
+        if (!dia) { showToast('Your Driving Instructor Authority (DIA) number is required to continue.'); return; }
       }
       if (curStep === 3) {
-        const expertise = [...document.querySelectorAll('#join-expertise-grid input:checked')];
-        if (expertise.length < 3 || expertise.length > 5) { showToast('Please complete all required fields before continuing.'); return; }
+        const teaching = [...document.querySelectorAll('#join-teaching-grid input:checked')];
+        if (teaching.length < 2) { showToast('Please select at least 2 teaching approach tags before continuing.'); return; }
+        if (teaching.length > 3) { showToast('You have selected more than 3 teaching approach tags — please deselect some to continue.'); return; }
       }
       if (curStep === 4) {
-        const suburb = document.getElementById('join-suburb')?.value.trim();
-        if (!suburb) { showToast('Please complete all required fields before continuing.'); return; }
+        const expertise = [...document.querySelectorAll('#join-expertise-grid input:checked')];
+        if (expertise.length < 3) { showToast('Please select at least 3 areas of expertise before continuing.'); return; }
+        if (expertise.length > 5) { showToast('You have selected more than 5 areas of expertise — please deselect some to continue.'); return; }
       }
       if (curStep === 5) {
+        const suburb = document.getElementById('join-suburb')?.value.trim();
+        const state  = document.getElementById('join-state')?.value;
+        if (!suburb) { showToast('Please enter your primary suburb before continuing.'); return; }
+        if (!state)  { showToast('Please select your state before continuing.'); return; }
+      }
+      if (curStep === 6) {
         const fee60 = document.getElementById('join-fee-60')?.value.trim();
-        if (!fee60) { showToast('Please complete all required fields before continuing.'); return; }
+        if (!fee60) { showToast('Please enter your 60-minute lesson fee before continuing.'); return; }
       }
 
       goToJoinStep(nextStep, true);
@@ -2043,6 +2429,20 @@ function bindPageEvents() {
 
   // Set initial progress on first render (step 1, no history push — navigate() already pushed)
   updateJoinProgress(1);
+
+  /* Teaching Approach counter */
+  const teachingGrid = document.getElementById('join-teaching-grid');
+  const teachingHint = document.getElementById('teaching-count-hint');
+  const teachingHintDefault = 'Most instructors choose 2–3 tags that reflect both their personality and how they run lessons.';
+  if (teachingGrid && teachingHint) {
+    teachingGrid.addEventListener('change', () => {
+      const count = teachingGrid.querySelectorAll('input:checked').length;
+      if (count < 2) teachingHint.textContent = `Select at least ${2-count} more`;
+      else if (count > 3) teachingHint.textContent = 'Maximum 3 selected — please deselect one';
+      else teachingHint.textContent = `${count} selected ✓`;
+      teachingHint.style.color = (count < 2 || count > 3) ? '#e53e3e' : '#38a169';
+    });
+  }
 
   /* Expertise counter */
   const expertiseGrid = document.getElementById('join-expertise-grid');
@@ -2115,12 +2515,23 @@ function bindPageEvents() {
       const email  = document.getElementById('join-email').value.trim();
       const dia    = (document.getElementById('join-dia') || {}).value?.trim() || '';
       const suburb = (document.getElementById('join-suburb') || {}).value?.trim() || '';
+      const state  = (document.getElementById('join-state')  || {}).value || '';
       const decl1  = document.getElementById('join-decl-1')?.checked || false;
 
-      if (!name || !email)             { showFormError('join-form-box', 'Please complete all required fields before continuing.'); return; }
-      if (!dia)                        { showFormError('join-form-box', 'Please complete all required fields before continuing.'); return; }
-      if (!suburb)                     { showFormError('join-form-box', 'Please complete all required fields before continuing.'); return; }
-      if (!decl1) { showFormError('join-form-box', 'Please complete all required fields before continuing.'); return; }
+      if (!name || !email)             { showFormError('join-form-box', 'Your name and email address are required. Please go back and fill them in.'); return; }
+      if (!dia)                        { showFormError('join-form-box', 'Your Driving Instructor Authority (DIA) number is missing. Please go back to Step 2 and enter it.'); return; }
+      if (!suburb)                     { showFormError('join-form-box', 'Your primary suburb is missing. Please go back to Step 5 and enter it.'); return; }
+      if (!state)                      { showFormError('join-form-box', 'Your state is missing. Please go back to Step 5 and select it.'); return; }
+      if (!decl1) {
+        showFormError('join-form-box', 'Please tick the box to confirm the Instructor Declaration before submitting your application.');
+        const declLabel = document.getElementById('join-decl-1')?.closest('.join-req-confirm');
+        if (declLabel) {
+          declLabel.classList.add('field-error-highlight');
+          declLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => declLabel.classList.remove('field-error-highlight'), 3000);
+        }
+        return;
+      }
 
       const phone   = document.getElementById('join-phone')?.value || '';
       const exp     = document.getElementById('join-exp')?.value || '';
@@ -2157,12 +2568,25 @@ function bindPageEvents() {
       // Lesson fees
       const fee60 = document.getElementById('join-fee-60')?.value.trim() || '';
       const fee90 = document.getElementById('join-fee-90')?.value.trim() || '';
-      if (!fee60) { showFormError('join-form-box', 'Please complete all required fields before continuing.'); return; }
+      if (!fee60) { showFormError('join-form-box', 'Your 60-minute lesson fee is missing. Please go back to Step 5 and enter it.'); return; }
+
+      // Collect Teaching Approach IDs (2-3 required), then resolve to human-readable labels for the email
+      const teachingApproachIds = [...document.querySelectorAll('#join-teaching-grid input:checked')].map(c => c.value);
+      if (teachingApproachIds.length < 2) {
+        showFormError('join-form-box', 'Please select at least 2 teaching approach tags. Go back to Step 3 to update your selections.'); return;
+      }
+      if (teachingApproachIds.length > 3) {
+        showFormError('join-form-box', 'You have selected more than 3 teaching approach tags. Go back to Step 3 and deselect some.'); return;
+      }
+      const teachingApproach = resolveTeachingApproach(teachingApproachIds);
 
       // Collect expertise IDs (3-5 required), then resolve to human-readable labels for the email
       const expertiseIds = [...document.querySelectorAll('#join-expertise-grid input:checked')].map(c => c.value);
-      if (expertiseIds.length < 3 || expertiseIds.length > 5) {
-        showFormError('join-form-box', 'Please complete all required fields before continuing.'); return;
+      if (expertiseIds.length < 3) {
+        showFormError('join-form-box', 'Please select at least 3 areas of expertise. Go back to Step 4 to update your selections.'); return;
+      }
+      if (expertiseIds.length > 5) {
+        showFormError('join-form-box', 'You have selected more than 5 areas of expertise. Go back to Step 4 and deselect some.'); return;
       }
       const expertise = resolveExpertise(expertiseIds);
 
@@ -2193,6 +2617,7 @@ function bindPageEvents() {
       fd.append('WWCC_Number',             wwcc || '(not provided)');
       fd.append('Year_Started',            exp);
       fd.append('Primary_Suburb',          suburb);
+      fd.append('State',                   state);
       fd.append('Travel_Radius_km',        radius + ' km');
       fd.append('Auto_Vehicle',            vAuto  || '(none)');
       fd.append('Manual_Vehicle',          vManual|| '(none)');
@@ -2202,86 +2627,118 @@ function bindPageEvents() {
       fd.append('Availability_Notes',      availSpecific          || '(not specified)');
       fd.append('Fee_60min',               '$' + fee60);
       fd.append('Fee_90min',               fee90 ? '$' + fee90 : '(not offered)');
+      fd.append('Teaching_Approach',       teachingApproach.join(' | '));
       fd.append('Areas_of_Expertise',      expertise.join(' | '));
       fd.append('Declaration_Confirmed',   'Yes — declaration confirmed');
       fd.append('About',                   bio);
       if (photoFile) fd.append('attachment', photoFile, photoFile.name);
 
-      fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Accept': 'application/json' }, // NO Content-Type — browser sets multipart boundary
-        body: fd
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          // ── Save application to localStorage for admin preview ──
-          const appId = 'app_' + Date.now();
-          const application = {
-            id:          appId,
-            submittedAt: new Date().toISOString(),
-            status:      'pending',
-            name, email, phone, dia, wwcc,
-            exp, suburb,
-            radius:      parseInt(radius, 10),
-            vAuto:       vAuto  || '',
-            vManual:     vManual|| '',
-            languages:   languages.length ? languages : [],
-            availDays, availTimes, availSpecific,
-            fee60, fee90: fee90 || '',
-            expertiseIds,
-            bio,
-            photoName:   photoFile ? photoFile.name : '',
-            photoDataUrl: null,
-          };
+      // ── PRIMARY: Save to Firestore first (always runs, no email dependency) ──
+      // The Firestore security rules allow unauthenticated creates, so this
+      // always works regardless of web3forms status. The admin panel reads
+      // directly from Firestore — this is what you check for applications.
+      const application = {
+        submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status:      'pending',
+        name, email, phone, dia, wwcc,
+        exp, suburb, state,
+        radius:      parseInt(radius, 10),
+        vAuto:       vAuto  || '',
+        vManual:     vManual|| '',
+        languages:   languages.length ? languages : [],
+        availDays, availTimes, availSpecific,
+        fee60, fee90: fee90 || '',
+        teachingApproachIds,
+        expertiseIds,
+        bio,
+        photoName:   photoFile ? photoFile.name : '',
+        photoDataUrl: null,
+      };
 
-          // Read the photo, resize/compress it, then save as base64 data URL in localStorage.
-          // GitHub Pages is static — no server storage — so we embed the image directly.
-          // We resize to max 400x400px and compress to JPEG 0.82 quality to stay well
-          // under localStorage's ~5 MB limit (raw 5 MB file -> ~270 KB after resize).
-          const saveApp = (photoDataUrl) => {
-            if (photoDataUrl) application.photoDataUrl = photoDataUrl;
-            try {
-              const existing = JSON.parse(localStorage.getItem('pdin_applications') || '[]');
-              existing.push(application);
-              localStorage.setItem('pdin_applications', JSON.stringify(existing));
-            } catch(e) { /* storage full or unavailable - profile will show initials instead */ }
-          };
-
-          if (photoFile) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-              const img = new Image();
-              img.onload = () => {
-                const MAX = 400;
-                let w = img.width, h = img.height;
-                if (w > MAX || h > MAX) {
-                  if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-                  else       { w = Math.round(w * MAX / h); h = MAX; }
-                }
-                const canvas = document.createElement('canvas');
-                canvas.width = w; canvas.height = h;
-                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                saveApp(canvas.toDataURL('image/jpeg', 0.82));
-              };
-              img.onerror = () => saveApp(null);
-              img.src = ev.target.result;
-            };
-            reader.onerror = () => saveApp(null);
-            reader.readAsDataURL(photoFile);
-          } else {
-            saveApp(null);
-          }
-
-          document.getElementById('join-form-box').innerHTML = `
+      function showSuccess(applicantName) {
+        const box = document.getElementById('join-form-box');
+        if (box) {
+          box.innerHTML = `
             <div class="success-box">
               <div class="success-icon">${ICONS.check}</div>
               <h3>Application Received!</h3>
-              <p>Thank you, ${name}. We'll review your application and be in touch within 2–3 business days.</p>
+              <p>Thank you, <strong>${applicantName}</strong>. We’ll review your application and be in touch within 2–3 business days.</p>
             </div>`;
-        } else { showFormError('join-form-box', 'Submission failed. Please try again.'); setButtonLoading('join-submit', false, 'Apply to Join'); }
-      })
-      .catch(() => { showFormError('join-form-box', 'Network error. Please try again.'); setButtonLoading('join-submit', false, 'Apply to Join'); });
+          box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        // ── SECONDARY (non-blocking): send email notification via web3forms ──
+        fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: fd
+        }).catch(() => { /* silent — Firestore record already saved */ });
+      }
+
+      function saveToFirestore(photoDataUrl) {
+        if (photoDataUrl) application.photoDataUrl = photoDataUrl;
+
+        let settled = false;
+
+        // Safety net: if the write doesn't confirm within 12s (e.g. blocked
+        // network, write stuck in local-only cache), show an error instead
+        // of leaving the visitor wondering or showing a false success.
+        const timeoutId = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          console.error('Firestore save timed out — write may not have reached the server.');
+          setButtonLoading('join-submit', false, 'Apply to Join');
+          showFormError('join-form-box', 'Your application is taking too long to send. Please check your internet connection and try again — do not refresh the page yet.');
+        }, 12000);
+
+        // Note: .add() only resolves once the write is acknowledged by the
+        // server (it does not resolve early from local cache), so there is
+        // no need to re-fetch the document to "confirm" it landed. The
+        // previous re-fetch step caused this exact bug: the "applications"
+        // collection is read-protected (admin-only) by the Firestore rules,
+        // so that read-back was always rejected with a permission error —
+        // even though the write itself had already succeeded.
+        db.collection('applications').add(application)
+          .then(() => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeoutId);
+            showSuccess(name);
+          })
+          .catch(err => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeoutId);
+            console.error('Firestore save failed:', err);
+            setButtonLoading('join-submit', false, 'Apply to Join');
+            showFormError('join-form-box', 'Could not save your application. Please check your internet connection and try again.');
+          });
+      }
+
+      // Resize & compress photo if provided, then save
+      if (photoFile) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            const MAX = 400;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+              if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+              else       { w = Math.round(w * MAX / h); h = MAX; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            saveToFirestore(canvas.toDataURL('image/jpeg', 0.82));
+          };
+          img.onerror = () => saveToFirestore(null);
+          img.src = ev.target.result;
+        };
+        reader.onerror = () => saveToFirestore(null);
+        reader.readAsDataURL(photoFile);
+      } else {
+        saveToFirestore(null);
+      }
     });
   }
 
@@ -2398,6 +2855,19 @@ window.addEventListener('popstate', e => {
 document.addEventListener('DOMContentLoaded', () => {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   bindNavEvents();
+
+  // Live instructor profiles (approved applications) — keep these in sync
+  // for every visitor, on every device, from the moment the page loads.
+  startLiveProfilesListener();
+
+  // Re-render the admin page automatically when sign-in state changes,
+  // so a successful login (or a sign-out) immediately reflects in the UI.
+  auth.onAuthStateChanged(() => {
+    if ((location.hash || '').replace('#','').split('/')[0] === 'admin') {
+      navigate('admin', null, false);
+    }
+  });
+
   const hash = window.location.hash.replace('#', '');
   if (hash) {
     const [page, extra] = hash.split('/');
@@ -2406,14 +2876,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if ((page||'home') === 'join') initState.joinStep = 1;
     history.replaceState(initState, '', window.location.hash);
   } else {
-    // Check if arriving at ?key=…#admin via URL (no hash yet)
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('key')) {
-      navigate('admin', null, false);
-      history.replaceState({ page:'admin', extra:null }, '', window.location.href);
-    } else {
-      navigate('home', null, false);
-      history.replaceState({ page:'home', extra:null }, '', '#home');
-    }
+    navigate('home', null, false);
+    history.replaceState({ page:'home', extra:null }, '', '#home');
   }
 });
