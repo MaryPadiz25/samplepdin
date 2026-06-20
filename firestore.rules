@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ---------- live_profiles ---------- */
+    /* Public instructor directory. Visitors' browsers read this
+       directly (no login) so the homepage/profile pages work. */
+    match /live_profiles/{profileId} {
+      allow read:  if true;
+      allow write: if request.auth != null;   // admin only
+    }
+
+    /* ---------- applications ---------- */
+    /* Raw join-form submissions. Anyone can submit one (that's the
+       point of the form), but only the signed-in admin can ever
+       read the list back, edit a record, or delete it. */
+    match /applications/{appId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;   // admin only
+    }
+
+    /* ---------- everything else ---------- */
+    /* Deny by default. If you add new collections later, add an
+       explicit rule for them above — don't rely on this fallback. */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
