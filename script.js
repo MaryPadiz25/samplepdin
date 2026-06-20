@@ -7,34 +7,6 @@
 function dec(arr) { return arr.map(c => String.fromCharCode(c)).join(''); }
 
 const CONTACT = {
-  'rob-lester':  {
-    p: [43,54,49,52,49,50,32,48,48,54,32,49,57,57],
-    e: [114,111,98,101,114,116,95,115,97,109,115,117,110,103,64,104,111,116,109,97,105,108,46,99,111,109],
-    svc: 'service_qmll1g9', tpl: 'template_v9nyycm',
-    w3f: '2c2335a7-edb1-4673-b7d7-6971217f4d96',
-    unavailable: false
-  },
-  'john-stevens': {
-    p: [43,54,51,57,51,54,49,52,49,49,52,57,54],
-    e: [109,97,114,121,106,111,121,46,112,97,100,105,122,49,64,103,109,97,105,108,46,99,111,109],
-    svc: 'maryjoy.padiz1@gmail.com', tpl: 'template_v9nyycm',
-    w3f: '1119cfb7-b03e-4f5d-ae4f-b8e3a077bac7',
-    unavailable: false
-  },
-  'lisa-wong': {
-    p: [43,54,49,52,49,51,32,52,53,54,32,55,56,57],
-    e: [109,97,114,105,97,102,114,101,121,112,97,100,105,122,64,103,109,97,105,108,46,99,111,109],
-    svc: null, tpl: null,   // EmailJS not yet configured — enquiry button hidden
-    unavailable: true,
-    joinUnavailable: true
-  },
-  'mark-harris': {
-    p: [43,54,49,52,49,52,32,53,54,55,32,56,57,48],
-    e: [109,97,114,121,106,111,121,46,112,97,100,105,122,64,111,117,116,108,111,111,107,46,99,111,109],
-    svc: 'mariafreypadiz@gmail.com', tpl: 'template_vpug1fw',
-    unavailable: false,
-    joinUnavailable: true
-  },
 };
 
 /* =============================================
@@ -46,6 +18,8 @@ const CONTACT = {
    group below, then reference its `id` in any
    instructor's expertiseIds array.
    ============================================= */
+const LANGUAGE_OPTIONS = ['English','Mandarin','Cantonese','Hindi','Punjabi','Vietnamese','Arabic','Greek','Tagalog / Filipino','Korean','Japanese','Thai'];
+
 const EXPERTISE_CATEGORIES = [
   {
     group: 'Core Instruction Areas',
@@ -167,109 +141,7 @@ function buildExpertiseCheckboxes() {
    expertiseIds: reference IDs from EXPERTISE_CATEGORIES above.
    Labels are resolved automatically — never store raw text here.
    ============================================= */
-const INSTRUCTORS = [
-  {
-    id: 'rob-lester',
-    initials: 'RL',
-    name: 'Rob Lester',
-    title: 'Professional Driving Instructor',
-    baseSuburb: 'Vermont',
-    baseLat: -37.8483, baseLng: 145.1813,
-    serviceRadius: 15,
-    travelBonus: true,
-    travelFee: false,
-    location: 'Vermont &amp; surrounding suburbs',
-    experience: '20+ years',
-    customQS: true,
-    lessonFees: [
-      { duration: '60 min', price: '$135' },
-      { duration: '90 min', price: '$180' },
-    ],
-    vehicles: [
-      { type: 'Auto',   car: 'Toyota Corolla Cross' },
-      { type: 'Manual', car: 'Toyota Corolla' },
-    ],
-    availability: 'Weekdays',
-    expertiseIds: [
-      'learner-drivers',
-      'nervous-drivers',
-      'vicroads-test',
-      'defensive-driving',
-      'adult-learners',
-      'overseas-licence',
-      'manual-instruction',
-      'advanced-confidence',
-      'highway-driving',
-      'refresher-lessons',
-      'logbook-hours',
-      'ndis-supported',
-    ],
-    seniorBadge: true,
-    photo: 'rob-lester.jpg',
-    credentials: { dia: true, wwcc: true },
-    bio: "Rob is a professional driving instructor based in Melbourne's Eastern Suburbs with over 20 years of experience helping learner drivers build confidence and pass their driving tests safely and efficiently. He is also a qualified commercial pilot and flight instructor, bringing an aviation-based approach to training that focuses on calm decision-making, structure, and safety. His calm, structured approach helps students become safe, independent drivers.",
-  },
-  {
-    id: 'john-stevens',
-    initials: 'JS',
-    name: 'John Stevens',
-    title: 'Professional Driving Instructor',
-    baseSuburb: 'Box Hill',
-    baseLat: -37.8198, baseLng: 145.1245,
-    serviceRadius: 10,
-    travelBonus: false,
-    travelFee: false,
-    location: 'Melbourne East',
-    transmission: 'Manual & Automatic',
-    experience: '12+ years',
-    fee: 'From $90–$120/hr',
-    availability: 'Weekdays / Weekends',
-    seniorBadge: true,
-    photo: 'john-stevens.jpg',
-    credentials: { dia: true, wwcc: true },
-    bio: "John is a professional driving instructor based in Melbourne's east with over 12 years of experience helping learner drivers build confidence and pass their driving test safely and efficiently. His calm, structured approach has helped hundreds of students become safe, independent drivers.",
-  },
-  {
-    id: 'lisa-wong',
-    initials: 'LW',
-    name: 'Lisa Wong',
-    title: 'Professional Driving Instructor',
-    baseSuburb: 'Melbourne CBD',
-    baseLat: -37.8136, baseLng: 144.9631,
-    serviceRadius: 10,
-    travelBonus: false,
-    travelFee: false,
-    location: 'Melbourne CBD',
-    transmission: 'Automatic',
-    experience: '8+ years',
-    fee: 'From $95–$115/hr',
-    availability: 'Weekdays / Saturdays',
-    seniorBadge: false,
-    photo: 'lisa-wong.jpg',
-    credentials: { dia: true, wwcc: false },
-    bio: "Lisa is an experienced automatic driving instructor operating in Melbourne's CBD and inner suburbs. With 8 years of experience, she specialises in building confidence in busy urban environments, helping students master parallel parking, roundabouts, and city traffic with ease.",
-  },
-  {
-    id: 'mark-harris',
-    initials: 'MH',
-    name: 'Mark Harris',
-    title: 'Professional Driving Instructor',
-    baseSuburb: 'Footscray',
-    baseLat: -37.8002, baseLng: 144.8996,
-    serviceRadius: 15,
-    travelBonus: true,
-    travelFee: true,
-    location: 'Melbourne West',
-    transmission: 'Manual & Automatic',
-    experience: '15+ years',
-    fee: 'From $95–$125/hr',
-    availability: 'Weekdays / Weekends',
-    seniorBadge: true,
-    photo: 'mark-harris.jpg',
-    credentials: { dia: true, wwcc: true },
-    bio: "Mark brings over 15 years of driving instruction experience to Melbourne's western suburbs. Known for his patient, structured teaching style, Mark has helped learners of all ages — from nervous first-timers to experienced drivers seeking to improve — become safe, confident road users.",
-  }
-];
+const INSTRUCTORS = [];
 
 /* =============================================
    SHARED TRACKER CONSTANTS
@@ -300,7 +172,8 @@ function trackEnquiry(instructorId, instructorName, leadData) {
     const now    = new Date();
     fetch(SHEETS_CALL_LOG_URL, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      mode:    'no-cors',                          // Apps Script 302-redirects every request; without this the browser silently turns the POST into a bodyless GET on redirect
+      headers: { 'Content-Type': 'text/plain' },   // avoids CORS preflight that Apps Script can't handle
       body: JSON.stringify({
         event:          'enquiry',
         instructorId,
@@ -345,7 +218,8 @@ function trackCall(instructorId, instructorName) {
     const now     = new Date();
     fetch(SHEETS_CALL_LOG_URL, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      mode:    'no-cors',                          // Apps Script 302-redirects every request; without this the browser silently turns the POST into a bodyless GET on redirect
+      headers: { 'Content-Type': 'text/plain' },   // avoids CORS preflight that Apps Script can't handle
       body: JSON.stringify({
         event:          'call',
         instructorId,
@@ -462,12 +336,12 @@ function instructorCardHTML(inst, distKm) {
   }
 
   const locationLabel = inst.state
-    ? `${inst.baseSuburb}, ${inst.state} &amp; Surrounding Suburbs`
+    ? `<span class="card-loc-stack">${inst.baseSuburb}, ${inst.state}<br><span class="card-loc-suburbs">Surrounding Suburbs</span></span>`
     : inst.location;
 
   const distLabel = distKm !== undefined
     ? `<div class="card-dist-row">${ICONS.mapPin} ${inst.baseSuburb} &bull; <strong>${distKm.toFixed(1)} km away</strong></div>`
-    : `<div class="card-meta-row">${ICONS.pin} ${locationLabel}</div>`;
+    : `<div class="card-meta-row card-meta-location">${ICONS.pin} ${locationLabel}</div>`;
 
   // Tagline: prefer Teaching Approach tags submitted via the join form; fall back to a sensible default
   const teachingLabels = (inst.teachingApproachIds && inst.teachingApproachIds.length)
@@ -642,7 +516,7 @@ function renderProfile(id) {
       <div class="qs-item-label">Service Area</div>
       <div class="qs-item-value">Based in ${inst.baseSuburb}${inst.state ? ', ' + inst.state : ''}</div>
       <div class="qs-item-value">Travel Range: ${inst.serviceRadius} km</div>
-      ${inst.travelBonus ? `<div class="qs-item-value qs-travel-note">Travel outside service area may be available by arrangement (additional fee may apply).</div>` : ''}
+      <div class="qs-item-value qs-travel-note">Travel outside service area may be available by arrangement (additional fee may apply).</div>
       ${inst.travelFee   ? `<div class="qs-item-value qs-travel-note">May charge travel fee for outer areas</div>` : ''}
     </div>`;
 
@@ -655,9 +529,11 @@ function renderProfile(id) {
     const teachingHTML = teachingLabels.map(a => `<li>${a}</li>`).join('');
     const feesHTML      = inst.lessonFees.map(f => `<div class="qs-item-value">${f.duration} — ${f.price}</div>`).join('');
     const vehiclesHTML  = inst.vehicles.map(v => `<div class="qs-item-value">${v.type} — ${v.car}</div>`).join('');
-    const credTag = (provided) => provided
-      ? `<span class="cred-tag cred-provided">Provided</span>`
-      : `<span class="cred-tag cred-not-provided">Not provided</span>`;
+    const credTag = (status) => status === 'verified'
+      ? `<span class="cred-tag cred-verified">Verified</span>`
+      : status === 'provided'
+        ? `<span class="cred-tag cred-provided">Provided</span>`
+        : `<span class="cred-tag cred-not-provided">Not provided</span>`;
     const creds = inst.credentials || {};
     const credentialsBlock = `
       <div class="qs-block">
@@ -665,6 +541,9 @@ function renderProfile(id) {
         <div class="cred-row"><span class="cred-label">Driving Instructor Authority (DIA)</span>${credTag(creds.dia)}</div>
         <div class="cred-row"><span class="cred-label">Working With Children Check (WWCC)</span>${credTag(creds.wwcc)}</div>
       </div>`;
+    const languagesBlock = (inst.languages && inst.languages.length)
+      ? `<div class="qs-block"><div class="qs-item-label">Languages Spoken</div><div class="qs-item-value">${inst.languages.join(', ')}</div></div>`
+      : '';
     qsRows = `
       <div class="qs-col-left">
         <div class="qs-block"><div class="qs-item-label">Experience</div><div class="qs-item-value">${inst.experience}</div></div>
@@ -674,14 +553,17 @@ function renderProfile(id) {
       </div>
       <div class="qs-col-right">
         <div class="qs-block"><div class="qs-item-label">Vehicles</div>${vehiclesHTML}</div>
-        <div class="qs-block"><div class="qs-item-label">Availability</div><div class="qs-item-value">${inst.availability}</div></div>
+        <div class="qs-block"><div class="qs-item-label">Availability</div><div class="qs-item-value">${inst.availability}</div>${(inst.availabilityTimes||[]).length ? `<div class="qs-avail-times">${inst.availabilityTimes.map(t=>`<div class="qs-avail-time">${t}</div>`).join('')}</div>` : ''}${inst.availabilityNote ? `<div class="qs-item-value qs-travel-note">${inst.availabilityNote}</div>` : ''}</div>
+        ${languagesBlock}
         <div class="qs-block"><div class="qs-item-label">Lesson Fees</div>${feesHTML}</div>
         ${serviceAreaBlock}
       </div>`;
   } else {
-    const credTag = (provided) => provided
-      ? `<span class="cred-tag cred-provided">Provided</span>`
-      : `<span class="cred-tag cred-not-provided">Not provided</span>`;
+    const credTag = (status) => status === 'verified'
+      ? `<span class="cred-tag cred-verified">Verified</span>`
+      : status === 'provided'
+        ? `<span class="cred-tag cred-provided">Provided</span>`
+        : `<span class="cred-tag cred-not-provided">Not provided</span>`;
     const creds = inst.credentials || {};
     qsRows = `
       <div><div class="qs-item-label">Experience</div><div class="qs-item-value">${inst.experience}</div></div>
@@ -692,7 +574,8 @@ function renderProfile(id) {
       </div>
       <div><div class="qs-item-label">Lesson Fee</div><div class="qs-item-value">${inst.fee}</div></div>
       <div><div class="qs-item-label">Transmission</div><div class="qs-item-value">${inst.transmission}</div></div>
-      <div><div class="qs-item-label">Availability</div><div class="qs-item-value">${inst.availability}</div></div>
+      <div><div class="qs-item-label">Availability</div><div class="qs-item-value">${inst.availability}</div>${(inst.availabilityTimes||[]).length ? `<div class="qs-avail-times">${inst.availabilityTimes.map(t=>`<div class="qs-avail-time">${t}</div>`).join('')}</div>` : ''}${inst.availabilityNote ? `<div class="qs-item-value qs-travel-note">${inst.availabilityNote}</div>` : ''}</div>
+      ${(inst.languages && inst.languages.length) ? `<div><div class="qs-item-label">Languages Spoken</div><div class="qs-item-value">${inst.languages.join(', ')}</div></div>` : ''}
       ${serviceAreaBlock}`;
   }
 
@@ -718,7 +601,7 @@ function renderProfile(id) {
               <p class="btn-trust-text">Call instantly — connects you directly to the instructor</p>
             </div>
             <div class="qs-btn-wrap">
-              ${(CONTACT[inst.id] && CONTACT[inst.id].unavailable)
+              ${((CONTACT[inst.id] && CONTACT[inst.id].unavailable) || inst.contactUnavailable)
                 ? `<button class="btn btn-gold btn-unavailable" disabled title="Online enquiry not yet available for this instructor">${ICONS.mail} Enquiry Unavailable</button>
                    <p class="btn-trust-text">Online enquiry not yet available for this instructor</p>`
                 : `<button class="btn btn-gold" id="open-enquiry-btn" data-instructor-id="${inst.id}">${ICONS.mail} Send Enquiry</button>
@@ -818,18 +701,7 @@ function renderJoin() {
           <div class="form-group">
             <label class="form-label">Languages Spoken</label>
             <div class="join-expertise-grid" id="join-languages-grid">
-              <label class="join-toggle-label"><input type="checkbox" value="English" /><span>English</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Mandarin" /><span>Mandarin</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Cantonese" /><span>Cantonese</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Hindi" /><span>Hindi</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Punjabi" /><span>Punjabi</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Vietnamese" /><span>Vietnamese</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Arabic" /><span>Arabic</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Greek" /><span>Greek</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Tagalog / Filipino" /><span>Tagalog / Filipino</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Korean" /><span>Korean</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Japanese" /><span>Japanese</span></label>
-              <label class="join-toggle-label"><input type="checkbox" value="Thai" /><span>Thai</span></label>
+              ${LANGUAGE_OPTIONS.map(l=>`<label class="join-toggle-label"><input type="checkbox" value="${l}" /><span>${l}</span></label>`).join('')}
             </div>
             <div class="form-group" style="margin-top:10px;margin-bottom:0">
               <input type="text" class="form-input" id="join-lang-other" placeholder="Other language (if not listed above)" />
@@ -1203,20 +1075,47 @@ function openEnquiryModal(inst) {
     const message      = document.getElementById('eq-message').value.trim();
     const days         = [...document.querySelectorAll('.eq-checkboxes input:checked')].map(c => c.value);
 
-    if (!name || !mobile || !email || !suburb || !licence || !transmission) {
-      showEnquiryError('Please fill in all required fields marked with *'); return;
+    const fieldMap = [
+      ['eq-name', name, 'Full Name'],
+      ['eq-mobile', mobile, 'Mobile Number'],
+      ['eq-email', email, 'Email Address'],
+      ['eq-suburb', suburb, 'Suburb / Area'],
+      ['eq-licence', licence, 'Licence Stage'],
+      ['eq-transmission', transmission, 'Transmission Preference'],
+    ];
+    const missing = fieldMap.filter(([, val]) => !val);
+
+    fieldMap.forEach(([id]) => document.getElementById(id).classList.remove('eq-invalid'));
+
+    if (missing.length) {
+      missing.forEach(([id]) => {
+        const el = document.getElementById(id);
+        el.classList.add('eq-invalid');
+        el.addEventListener('input', () => el.classList.remove('eq-invalid'), { once: true });
+        el.addEventListener('change', () => el.classList.remove('eq-invalid'), { once: true });
+      });
+      const names = missing.map(([, , label]) => label);
+      const list = names.length === 1
+        ? names[0]
+        : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+      showEnquiryError(`Please fill in: ${list}.`);
+      missing[0][0] && document.getElementById(missing[0][0]).focus();
+      return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('eq-email').classList.add('eq-invalid');
       showEnquiryError('Please enter a valid email address.'); return;
     }
     clearEnquiryError();
     setEnquiryButtonLoading(true);
 
     const ct = CONTACT[inst.id] || {};
+    // Prefer the w3fKey stored on the live profile in Firestore (set via
+    // the admin Edit Profile panel), then fall back to the static CONTACT map
+    const w3fKey = inst.w3fKey || ct.w3f || null;
+    const isUnavailable = inst.contactUnavailable || ct.unavailable || false;
 
-    // Use the instructor's own web3forms access key so the enquiry
-    // lands directly in their inbox
-    if (!ct.w3f) {
+    if (!w3fKey) {
       showEnquiryError('Online enquiry is not yet available for this instructor. Please call them directly.');
       setEnquiryButtonLoading(false);
       return;
@@ -1226,7 +1125,7 @@ function openEnquiryModal(inst) {
       method: 'POST',
       headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        access_key:      ct.w3f,
+        access_key:      w3fKey,
         subject:         'New Lesson Enquiry from ' + name + ' — Professional Driving Instructors Network',
         from_name:       'Professional Driving Instructors Network',
         Instructor:      inst.name,
@@ -1406,20 +1305,23 @@ function buildLiveProfileFromApp(app, appId) {
     serviceRadius: parseInt(app.radius) || 10,
     travelBonus:  false,
     travelFee:    false,
-    location:     app.suburb + (app.state ? ', ' + app.state : '') + ' &amp; Surrounding Suburbs',
+    location:     '<span class="profile-loc-stack">' + app.suburb + (app.state ? ', ' + app.state : '') + '<br><span class="profile-loc-suburbs">Surrounding Suburbs</span></span>',
     experience:   expLabel,
     customQS:     true,
     lessonFees:   feesArr,
     vehicles:     vehiclesArr,
     availability: availLabel,
+    availabilityTimes: app.availTimes || [],
+    availabilityNote: app.availSpecific || '',
     teachingApproachIds: app.teachingApproachIds || [],
     expertiseIds: app.expertiseIds || [],
-    credentials:  { dia: !!(app.dia), wwcc: !!(app.wwcc) },
+    credentials:  { dia: credStatus(false, app.dia), wwcc: credStatus(false, app.wwcc) },
     seniorBadge:  expYears >= 10,
     photo:        null,
     photoDataUrl: app.photoDataUrl || null,
     bio:          app.bio || '',
     languages:    app.languages || [],
+    phone:        app.phone || '',
     _fromApp:     appId,
   };
   return { idSlug, liveProfile };
@@ -1518,7 +1420,8 @@ function renderAdminPage(extra, apps) {
     const transmission = [app.vAuto ? 'Automatic' : '', app.vManual ? 'Manual' : ''].filter(Boolean).join(' & ') || 'Automatic';
     const feesArr    = [`{ duration: '60 min', price: '$${app.fee60}' }`, ...(app.fee90 ? [`{ duration: '90 min', price: '$${app.fee90}' }`] : [])];
     const vehiclesArr = [...(app.vAuto ? [`{ type: 'Auto',   car: '${app.vAuto}' }`] : []), ...(app.vManual ? [`{ type: 'Manual', car: '${app.vManual}' }`] : [])];
-    const availLabel = [...(app.availDays||[])].join(' / ') || 'Weekdays';
+    const availLabel = (app.availDays||[]).join(' / ') || 'Weekdays';
+    const availTimesArr = (app.availTimes||[]).map(t => `'${t.replace(/'/g,"\\'")}'`);
     const expertiseIdStr = (app.expertiseIds||[]).map(id => `      '${id}',`).join('\n');
     const teachingIdStr  = (app.teachingApproachIds||[]).map(id => `      '${id}',`).join('\n');
 
@@ -1533,7 +1436,7 @@ function renderAdminPage(extra, apps) {
     serviceRadius: ${app.radius || 10},
     travelBonus: false,
     travelFee: false,
-    location: '${app.suburb}${app.state ? ', ' + app.state : ''} & Surrounding Suburbs',
+    location: '<span class="profile-loc-stack">${app.suburb}${app.state ? ', ' + app.state : ''}<br><span class="profile-loc-suburbs">Surrounding Suburbs</span></span>',
     transmission: '${transmission}',
     experience: '${expLabel}',
     lessonFees: [
@@ -1543,6 +1446,8 @@ function renderAdminPage(extra, apps) {
       ${vehiclesArr.join(',\n      ')},
     ],` : ''}
     availability: '${availLabel}',
+    availabilityTimes: [${availTimesArr.join(', ')}],
+    availabilityNote: '${(app.availSpecific||'').replace(/'/g,"\\'")}',
     teachingApproachIds: [
 ${teachingIdStr}
     ],
@@ -1616,15 +1521,18 @@ ${expertiseIdStr}
         <div class="admin-app-actions">
           <button class="btn btn-navy admin-approve-btn" data-appid="${app.id}">✓ Approve &amp; Publish Live</button>
           <button class="btn btn-outline admin-reject-btn" data-appid="${app.id}">✕ Reject</button>
+          <button class="btn btn-outline admin-edit-btn" data-appid="${app.id}">✏️ Edit Profile</button>
           <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Move to Trash</button>
         </div>` : app.status === 'approved' ? `
         <div class="admin-app-actions">
           <button class="btn btn-outline admin-view-live-btn" data-slug="${app.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')}">👁 View Live Profile</button>
+          <button class="btn btn-outline admin-edit-btn" data-appid="${app.id}">✏️ Edit Profile</button>
           <button class="btn btn-outline admin-reject-btn" data-appid="${app.id}" style="color:#c0392b;border-color:#c0392b">✕ Remove from Site</button>
           <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Move to Trash</button>
         </div>` : app.status === 'rejected' ? `
         <div class="admin-app-actions">
           <button class="btn btn-outline admin-restore-btn" data-appid="${app.id}">↩ Restore to Pending</button>
+          <button class="btn btn-outline admin-edit-btn" data-appid="${app.id}">✏️ Edit Profile</button>
           <button class="btn btn-outline admin-delete-btn" data-appid="${app.id}">🗑 Move to Trash</button>
         </div>` : `
         <div class="admin-trash-note">🗑 ${trashCountdown}</div>
@@ -1632,6 +1540,126 @@ ${expertiseIdStr}
           <button class="btn btn-navy admin-trash-restore-btn" data-appid="${app.id}">↩ Restore</button>
           <button class="btn btn-outline admin-trash-purge-btn" data-appid="${app.id}" style="color:#c0392b;border-color:#c0392b">🗑 Delete Permanently</button>
         </div>`}
+
+        <!-- ── Inline Edit Panel (hidden until ✏️ Edit is clicked) ── -->
+        <div class="admin-edit-panel" id="edit-panel-${app.id}" style="display:none">
+          <div class="admin-edit-panel-title">✏️ Edit Profile — ${app.name}</div>
+          <div class="admin-edit-grid">
+            <div class="admin-edit-section">
+              <div class="admin-edit-section-head">Personal Details</div>
+              <div class="admin-edit-row"><label>Full Name</label><input class="form-input" id="ep-name-${app.id}" value="${escHtml(app.name||'')}" /></div>
+              <div class="admin-edit-row"><label>Email</label><input class="form-input" type="email" id="ep-email-${app.id}" value="${escHtml(app.email||'')}" /></div>
+              <div class="admin-edit-row"><label>Phone</label><input class="form-input" id="ep-phone-${app.id}" value="${escHtml(app.phone||'')}" /></div>
+            </div>
+            <div class="admin-edit-section">
+              <div class="admin-edit-section-head">Location &amp; Service Area</div>
+              <div class="admin-edit-row"><label>Primary Suburb</label><input class="form-input" id="ep-suburb-${app.id}" value="${escHtml(app.suburb||'')}" /></div>
+              <div class="admin-edit-row"><label>State</label>
+                <select class="form-input" id="ep-state-${app.id}">
+                  ${['VIC','NSW','QLD','SA','WA','TAS','ACT','NT'].map(s=>`<option value="${s}" ${app.state===s?'selected':''}>${s}</option>`).join('')}
+                </select>
+              </div>
+              <div class="admin-edit-row"><label>Travel Radius (km)</label>
+                <select class="form-input" id="ep-radius-${app.id}">
+                  ${[10,15,20,30,50].map(r=>`<option value="${r}" ${parseInt(app.radius)===r?'selected':''}>${r} km</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div class="admin-edit-section">
+              <div class="admin-edit-section-head">Lesson Fees</div>
+              <div class="admin-edit-row"><label>60-min fee ($)</label><input class="form-input" type="number" id="ep-fee60-${app.id}" value="${app.fee60||''}" min="0" /></div>
+              <div class="admin-edit-row"><label>90-min fee ($) <span style="font-weight:400;color:var(--text-light)">(optional)</span></label><input class="form-input" type="number" id="ep-fee90-${app.id}" value="${app.fee90||''}" min="0" /></div>
+            </div>
+            <div class="admin-edit-section">
+              <div class="admin-edit-section-head">Vehicles</div>
+              <div class="admin-edit-row"><label>Automatic vehicle</label><input class="form-input" id="ep-vauto-${app.id}" value="${escHtml(app.vAuto||'')}" placeholder="Make &amp; model" /></div>
+              <div class="admin-edit-row"><label>Manual vehicle</label><input class="form-input" id="ep-vmanual-${app.id}" value="${escHtml(app.vManual||'')}" placeholder="Make &amp; model" /></div>
+            </div>
+            <div class="admin-edit-section">
+              <div class="admin-edit-section-head">Credentials</div>
+              <div class="admin-edit-row"><label>DIA Number</label><input class="form-input" id="ep-dia-${app.id}" value="${escHtml(app.dia||'')}" /></div>
+              <div class="admin-edit-row"><label>WWCC Number <span style="font-weight:400;color:var(--text-light)">(optional)</span></label><input class="form-input" id="ep-wwcc-${app.id}" value="${escHtml(app.wwcc||'')}" /></div>
+              <div class="admin-edit-row admin-edit-row-check">
+                <label><input type="checkbox" id="ep-cred-dia-${app.id}" ${app.credentials?.dia==='verified'?'checked':''} /> Mark DIA as Verified</label>
+                <label><input type="checkbox" id="ep-cred-wwcc-${app.id}" ${app.credentials?.wwcc==='verified'?'checked':''} /> Mark WWCC as Verified</label>
+                <small class="form-hint">If left unticked, the profile will show "Provided" when a number is entered above, or "Not provided" if left blank.</small>
+              </div>
+            </div>
+            <div class="admin-edit-section">
+              <div class="admin-edit-section-head">Contact / Enquiry</div>
+              <div class="admin-edit-row">
+                <label>Web3Forms Access Key
+                  <span class="admin-edit-hint">Paste the instructor's Web3Forms key here so student enquiries land directly in their inbox. Get a key at <a href="https://web3forms.com" target="_blank">web3forms.com</a> (free).</span>
+                </label>
+                <input class="form-input" id="ep-w3f-${app.id}" value="${escHtml(app.w3fKey||'')}" placeholder="e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+              </div>
+              <div class="admin-edit-row admin-edit-row-check">
+                <label><input type="checkbox" id="ep-unavailable-${app.id}" ${app.contactUnavailable?'checked':''} /> Mark enquiry as unavailable (hides Send Enquiry button on profile)</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-edit-section" style="margin-top:0">
+            <div class="admin-edit-section-head">Languages Spoken</div>
+            <div class="admin-edit-checks" id="ep-languages-${app.id}">
+              <div class="admin-edit-tag-grid">
+                ${LANGUAGE_OPTIONS.map(l=>`<label class="join-toggle-label"><input type="checkbox" value="${l}" ${(app.languages||[]).includes(l)?'checked':''}/><span>${l}</span></label>`).join('')}
+              </div>
+            </div>
+            <input class="form-input" style="margin-top:8px" id="ep-lang-other-${app.id}" value="${escHtml((app.languages||[]).find(l=>!LANGUAGE_OPTIONS.includes(l))||'')}" placeholder="Other language (if not listed above)" />
+          </div>
+
+          <div class="admin-edit-section" style="margin-top:0">
+            <div class="admin-edit-section-head">Availability</div>
+            <div class="admin-edit-avail">
+              ${['Weekdays (Mon–Fri)','Saturday','Sunday'].map(d=>`
+                <label class="join-toggle-label"><input type="checkbox" class="ep-avail-day-${app.id}" value="${d}" ${(app.availDays||[]).includes(d)?'checked':''}/><span>${d}</span></label>`).join('')}
+              ${['Morning (8am–12pm)','Afternoon (12pm–5pm)','Evening (5pm–8pm)'].map(t=>`
+                <label class="join-toggle-label"><input type="checkbox" class="ep-avail-time-${app.id}" value="${t}" ${(app.availTimes||[]).includes(t)?'checked':''}/><span>${t}</span></label>`).join('')}
+            </div>
+            <input class="form-input" style="margin-top:8px" id="ep-availnote-${app.id}" value="${escHtml(app.availSpecific||'')}" placeholder="Additional availability notes (optional)" />
+          </div>
+
+          <div class="admin-edit-section" style="margin-top:16px">
+            <div class="admin-edit-section-head">Teaching Approach <span style="font-weight:400;font-size:12px;color:var(--text-light)">(select 2–3)</span></div>
+            <div class="admin-edit-checks" id="ep-teaching-${app.id}">
+              ${TEACHING_APPROACH_CATEGORIES.map(g=>`
+                <p class="expertise-group-head" style="font-size:12px;margin:8px 0 4px">${g.group}</p>
+                <div class="admin-edit-tag-grid">
+                ${g.items.map(item=>`<label class="join-toggle-label"><input type="checkbox" value="${item.id}" ${(app.teachingApproachIds||[]).includes(item.id)?'checked':''}/><span>${item.label}</span></label>`).join('')}
+                </div>`).join('')}
+            </div>
+          </div>
+
+          <div class="admin-edit-section" style="margin-top:16px">
+            <div class="admin-edit-section-head">Areas of Expertise <span style="font-weight:400;font-size:12px;color:var(--text-light)">(select 3–5)</span></div>
+            <div class="admin-edit-checks" id="ep-expertise-${app.id}">
+              ${EXPERTISE_CATEGORIES.map(g=>`
+                <p class="expertise-group-head" style="font-size:12px;margin:8px 0 4px">${g.group}</p>
+                <div class="admin-edit-tag-grid">
+                ${g.items.map(item=>`<label class="join-toggle-label"><input type="checkbox" value="${item.id}" ${(app.expertiseIds||[]).includes(item.id)?'checked':''}/><span>${item.label}</span></label>`).join('')}
+                </div>`).join('')}
+            </div>
+          </div>
+
+          <div class="admin-edit-section" style="margin-top:16px">
+            <div class="admin-edit-section-head">Bio / About</div>
+            <textarea class="form-input" id="ep-bio-${app.id}" style="min-height:120px">${escHtml(app.bio||'')}</textarea>
+          </div>
+
+          <div class="admin-edit-section" style="margin-top:16px">
+            <div class="admin-edit-section-head">Photo</div>
+            ${app.photoDataUrl ? `<img src="${app.photoDataUrl}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:block;margin-bottom:10px" alt="Current photo" />` : '<p style="font-size:13px;color:var(--text-light);margin-bottom:8px">No photo uploaded.</p>'}
+            <label style="font-size:13px;color:var(--text-dark);display:block;margin-bottom:4px">Replace photo <span style="font-weight:400;color:var(--text-light)">(JPG/PNG, max 5 MB)</span></label>
+            <input type="file" class="form-input" id="ep-photo-${app.id}" accept="image/jpeg,image/png,image/webp" style="padding:6px" />
+          </div>
+
+          <div class="admin-edit-actions">
+            <button class="btn btn-navy admin-edit-save-btn" data-appid="${app.id}" data-status="${app.status}">💾 Save Changes</button>
+            <button class="btn btn-outline admin-edit-cancel-btn" data-appid="${app.id}">Cancel</button>
+            <span class="admin-edit-saved-msg" id="edit-saved-${app.id}" style="display:none;color:#38a169;font-size:13px;font-weight:600">✓ Saved!</span>
+          </div>
+        </div>
       </div>`;
   }
 
@@ -1680,7 +1708,7 @@ function renderPendingProfile(app) {
   const expertise  = resolveExpertise(app.expertiseIds || []);
   const teachingApproach = resolveTeachingApproach(app.teachingApproachIds || []);
   const transmission = [app.vAuto ? 'Automatic' : '', app.vManual ? 'Manual' : ''].filter(Boolean).join(' & ') || 'Automatic';
-  const avail      = [...(app.availDays||[]), ...(app.availTimes||[])].join(' / ') || '(not specified)';
+  const avail      = (app.availDays||[]).join(' / ') || '(not specified)';
 
   const feesHTML = [
     `<div class="qs-item"><div class="qs-item-label">60 min lesson</div><div class="qs-item-value">$${app.fee60}</div></div>`,
@@ -1702,17 +1730,22 @@ function renderPendingProfile(app) {
         <div>
           <div class="profile-name" style="font-size:22px">${app.name}${expYears >= 10 ? '<span class="senior-badge" title="10+ Years Experience">⭐</span>' : ''}</div>
           <div class="profile-title">Professional Driving Instructor</div>
-          <div class="profile-location">${ICONS.pin} ${app.suburb}${app.state ? ', ' + app.state : ''} &amp; Surrounding Suburbs</div>
+          <div class="profile-location">${ICONS.pin} <span class="profile-loc-stack">${app.suburb}${app.state ? ', ' + app.state : ''}<br><span class="profile-loc-suburbs">Surrounding Suburbs</span></span></div>
         </div>
       </div>
       <div class="quick-summary" style="margin-top:20px">
         <div class="qs-title">Instructor Profile</div>
         <div class="qs-grid">
           <div class="qs-item"><div class="qs-item-label">Service Area</div><div class="qs-item-value">Based in ${app.suburb}${app.state ? ', ' + app.state : ''}</div></div>
-          <div class="qs-item"><div class="qs-item-label">Travel Radius</div><div class="qs-item-value">Up to ${app.radius} km</div></div>
+          <div class="qs-item"><div class="qs-item-label">Travel Radius</div><div class="qs-item-value">Up to ${app.radius} km<div class="qs-travel-note">Travel outside service area may be available by arrangement (additional fee may apply).</div></div></div>
           <div class="qs-item"><div class="qs-item-label">Transmission</div><div class="qs-item-value">${transmission}</div></div>
           <div class="qs-item"><div class="qs-item-label">Experience</div><div class="qs-item-value">${expLabel}</div></div>
-          <div class="qs-item"><div class="qs-item-label">Availability</div><div class="qs-item-value">${avail}</div></div>
+          <div class="qs-item"><div class="qs-item-label">Availability</div><div class="qs-item-value">${avail}</div>${(app.availTimes||[]).length ? `<div class="qs-avail-times">${app.availTimes.map(t=>`<div class="qs-avail-time">${t}</div>`).join('')}</div>` : ''}${app.availSpecific ? `<div class="qs-item-value qs-travel-note">${app.availSpecific}</div>` : ''}</div>
+          <div class="qs-item">
+            <div class="qs-item-label">Credentials</div>
+            <div class="cred-row"><span class="cred-label">DIA</span>${(() => { const s = app.credentials?.dia || credStatus(false, app.dia); return s==='verified'?'<span class="cred-tag cred-verified">Verified</span>':s==='provided'?'<span class="cred-tag cred-provided">Provided</span>':'<span class="cred-tag cred-not-provided">Not provided</span>'; })()}</div>
+            <div class="cred-row"><span class="cred-label">WWCC</span>${(() => { const s = app.credentials?.wwcc || credStatus(false, app.wwcc); return s==='verified'?'<span class="cred-tag cred-verified">Verified</span>':s==='provided'?'<span class="cred-tag cred-provided">Provided</span>':'<span class="cred-tag cred-not-provided">Not provided</span>'; })()}</div>
+          </div>
           ${feesHTML}
           ${vehiclesHTML}
           ${app.languages && app.languages.length ? `<div class="qs-item"><div class="qs-item-label">Languages</div><div class="qs-item-value">${app.languages.join(', ')}</div></div>` : ''}
@@ -1730,6 +1763,13 @@ function renderPendingProfile(app) {
           <div class="expertise-tags">${expertise.map(e=>`<span class="expertise-tag">${e}</span>`).join('')}</div>
         </div>` : ''}
     </div>`;
+}
+
+/* Credential status: admin-verified takes priority, then instructor-provided, else not provided */
+function credStatus(adminVerified, value) {
+  if (adminVerified) return 'verified';
+  if (value) return 'provided';
+  return 'not_provided';
 }
 
 /* HTML-escape helper for code blocks */
@@ -1843,7 +1883,170 @@ function bindAdminEvents() {
     });
   });
 
-  // Move to Trash (soft delete — recoverable for 24h)
+  // ── Edit Profile: toggle panel open/closed ──
+  document.querySelectorAll('.admin-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const appId = btn.dataset.appid;
+      const panel = document.getElementById('edit-panel-' + appId);
+      if (!panel) return;
+      const isOpen = panel.style.display !== 'none';
+      panel.style.display = isOpen ? 'none' : 'block';
+      btn.textContent = isOpen ? '✏️ Edit Profile' : '✖ Close Editor';
+      if (!isOpen) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+
+  // ── Edit Profile: cancel ──
+  document.querySelectorAll('.admin-edit-cancel-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const appId = btn.dataset.appid;
+      const panel = document.getElementById('edit-panel-' + appId);
+      if (panel) panel.style.display = 'none';
+      const editBtn = document.querySelector(`.admin-edit-btn[data-appid="${appId}"]`);
+      if (editBtn) editBtn.textContent = '✏️ Edit Profile';
+    });
+  });
+
+  // ── Edit Profile: save ──
+  document.querySelectorAll('.admin-edit-save-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const appId  = btn.dataset.appid;
+      const status = btn.dataset.status;
+      btn.disabled = true; btn.textContent = '💾 Saving…';
+
+      const v  = id => (document.getElementById(id)?.value || '').trim();
+      const cb = id => document.getElementById(id)?.checked || false;
+      const chks = cls => [...document.querySelectorAll('.' + cls)].filter(c=>c.checked).map(c=>c.value);
+
+      const name     = v(`ep-name-${appId}`);
+      const email    = v(`ep-email-${appId}`);
+      const phone    = v(`ep-phone-${appId}`);
+      const suburb   = v(`ep-suburb-${appId}`);
+      const state    = v(`ep-state-${appId}`);
+      const radius   = parseInt(v(`ep-radius-${appId}`)) || 10;
+      const fee60    = v(`ep-fee60-${appId}`);
+      const fee90    = v(`ep-fee90-${appId}`);
+      const vAuto    = v(`ep-vauto-${appId}`);
+      const vManual  = v(`ep-vmanual-${appId}`);
+      const dia      = v(`ep-dia-${appId}`);
+      const wwcc     = v(`ep-wwcc-${appId}`);
+      const credDia  = cb(`ep-cred-dia-${appId}`);
+      const credWwcc = cb(`ep-cred-wwcc-${appId}`);
+      const w3fKey   = v(`ep-w3f-${appId}`);
+      const unavail  = cb(`ep-unavailable-${appId}`);
+      const bio      = (document.getElementById(`ep-bio-${appId}`)?.value || '').trim();
+      const availNote= v(`ep-availnote-${appId}`);
+      const availDays  = chks(`ep-avail-day-${appId}`);
+      const availTimes = chks(`ep-avail-time-${appId}`);
+      const teachingApproachIds = [...document.querySelectorAll(`#ep-teaching-${appId} input:checked`)].map(c=>c.value);
+      const expertiseIds        = [...document.querySelectorAll(`#ep-expertise-${appId} input:checked`)].map(c=>c.value);
+      const languages = [...document.querySelectorAll(`#ep-languages-${appId} input:checked`)].map(c=>c.value);
+      const langOther = v(`ep-lang-other-${appId}`);
+      if (langOther) languages.push(langOther);
+
+      // Build the updates object for the application doc
+      const updates = {
+        name, email, phone, suburb, state, radius,
+        fee60, fee90, vAuto, vManual, dia, wwcc,
+        credentials: { dia: credStatus(credDia, dia), wwcc: credStatus(credWwcc, wwcc) },
+        w3fKey, contactUnavailable: unavail,
+        bio, availDays, availTimes, availSpecific: availNote,
+        teachingApproachIds, expertiseIds, languages,
+      };
+
+      // Recalculate derived fields
+      const expYears   = updates.exp ? (new Date().getFullYear() - parseInt(updates.exp)) : 0;
+      const idSlug     = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+      const initials   = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      const availLabel = availDays.join(' / ') || 'Contact instructor';
+      const feesArr    = [{ duration: '60 min', price: '$' + fee60 }];
+      if (fee90) feesArr.push({ duration: '90 min', price: '$' + fee90 });
+      const vehiclesArr = [];
+      if (vAuto)   vehiclesArr.push({ type: 'Auto',   car: vAuto });
+      if (vManual) vehiclesArr.push({ type: 'Manual', car: vManual });
+
+      // Handle photo replacement
+      const photoInput = document.getElementById(`ep-photo-${appId}`);
+      const photoFile  = photoInput?.files?.[0] || null;
+
+      function doSave(photoDataUrl) {
+        if (photoDataUrl !== undefined) updates.photoDataUrl = photoDataUrl;
+
+        const writes = [db.collection('applications').doc(appId).update(updates)];
+
+        // If approved, also update the live_profiles document in Firestore
+        if (status === 'approved') {
+          const liveUpdates = {
+            name, initials,
+            baseSuburb: suburb, state,
+            serviceRadius: radius,
+            location: '<span class="profile-loc-stack">' + suburb + (state ? ', ' + state : '') + '<br><span class="profile-loc-suburbs">Surrounding Suburbs</span></span>',
+            availability: availLabel,
+            availabilityTimes: availTimes,
+            availabilityNote: availNote,
+            lessonFees: feesArr,
+            vehicles: vehiclesArr,
+            bio, teachingApproachIds, expertiseIds, languages,
+            credentials: { dia: credStatus(credDia, dia), wwcc: credStatus(credWwcc, wwcc) },
+            w3fKey, contactUnavailable: unavail,
+          };
+          if (photoDataUrl !== undefined) liveUpdates.photoDataUrl = photoDataUrl;
+
+          writes.push(
+            db.collection('live_profiles').where('_fromApp', '==', appId).get()
+              .then(snap => {
+                if (!snap.empty) {
+                  return Promise.all(snap.docs.map(d => d.ref.update(liveUpdates)));
+                }
+              })
+          );
+        }
+
+        Promise.all(writes)
+          .then(() => {
+            btn.disabled = false; btn.textContent = '💾 Save Changes';
+            const msg = document.getElementById('edit-saved-' + appId);
+            if (msg) { msg.style.display = 'inline'; setTimeout(() => msg.style.display = 'none', 3000); }
+            showToast('✅ Profile updated successfully.');
+          })
+          .catch(err => {
+            console.error('Edit save failed:', err);
+            btn.disabled = false; btn.textContent = '💾 Save Changes';
+            showToast('Could not save changes. Please try again.');
+          });
+      }
+
+      if (photoFile) {
+        if (photoFile.size > 5 * 1024 * 1024) {
+          showToast('Photo exceeds 5 MB. Please choose a smaller image.');
+          btn.disabled = false; btn.textContent = '💾 Save Changes';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const img = new Image();
+          img.onload = () => {
+            const MAX = 400;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+              if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+              else       { w = Math.round(w * MAX / h); h = MAX; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            doSave(canvas.toDataURL('image/jpeg', 0.82));
+          };
+          img.onerror = () => doSave(undefined);
+          img.src = ev.target.result;
+        };
+        reader.onerror = () => doSave(undefined);
+        reader.readAsDataURL(photoFile);
+      } else {
+        doSave(undefined);
+      }
+    });
+  });
   document.querySelectorAll('.admin-delete-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!confirm('Move this record to Trash? If it has a live profile, that will come off the site too. Trashed records are kept for 24 hours and can be restored, or permanently deleted from the Trash tab.')) return;
@@ -2249,14 +2452,34 @@ function bindPageEvents() {
     callBtn.addEventListener('click', () => {
       const ct   = CONTACT[callBtn.dataset.id];
       const inst = getAllInstructors().find(i => i.id === callBtn.dataset.id);
+
+      // Hardcoded instructors store their number (already +61, char-code
+      // obfuscated) in CONTACT. Live/approved profiles (from Firestore)
+      // don't have a CONTACT entry — their number lives on the profile
+      // itself instead, in local 04xx xxx xxx format from the join form.
+      let rawNumber = null;
       if (ct && ct.p) {
+        rawNumber = dec(ct.p);
+      } else if (inst && inst.phone) {
+        rawNumber = inst.phone;
+      }
+
+      if (rawNumber) {
+        // Normalize to +61 international format for the tel: link.
+        let digits = rawNumber.replace(/[^\d+]/g, '');
+        if (digits.startsWith('0')) digits = '+61' + digits.slice(1);
+        else if (digits.startsWith('61')) digits = '+' + digits;
+        else if (!digits.startsWith('+')) digits = '+61' + digits;
+
         trackCall(callBtn.dataset.id, inst ? inst.name : callBtn.dataset.id);
         const a = document.createElement('a');
-        a.href = 'tel:' + dec(ct.p).replace(/\s/g, '');
+        a.href = 'tel:' + digits;
         a.style.display = 'none';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+      } else {
+        showToast('This instructor\'s phone number is not available yet.');
       }
     });
   }
